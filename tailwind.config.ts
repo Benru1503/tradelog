@@ -7,13 +7,13 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          DEFAULT: "#0a0a0b",
-          elevated: "#111114",
-          card: "#16161a",
+          DEFAULT: "#050507",
+          elevated: "#0d0e11",
+          card: "#13141a",
         },
         border: {
-          DEFAULT: "#26262d",
-          strong: "#3a3a44",
+          DEFAULT: "#1f2028",
+          strong: "#2c2d37",
         },
         fg: {
           DEFAULT: "#f4f4f5",
@@ -21,10 +21,11 @@ const config: Config = {
           subtle: "#71717a",
         },
         accent: {
-          DEFAULT: "#7c5cff",
-          hover: "#9277ff",
+          DEFAULT: "#5fd0f5",
+          hover: "#7ddcf8",
+          subtle: "#1a3640",
         },
-        profit: "#10b981",
+        profit: "#22c55e",
         loss: "#ef4444",
       },
       fontFamily: {

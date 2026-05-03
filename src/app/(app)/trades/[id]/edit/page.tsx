@@ -7,8 +7,18 @@ import { TradeForm } from "@/components/trades/TradeForm";
 
 export default async function EditTradePage({ params }: { params: { id: string } }) {
   const user = await requireUser();
-  const trade = await prisma.trade.findUnique({ where: { id: params.id } });
-  if (!trade || trade.userId !== user.id) notFound();
+  const trade = await prisma.trade.findUnique({
+    where: { id: params.id },
+    include: { tags: true },
+  });
+  if (!trade || trade.userId !== user.id || trade.deletedAt) notFound();
+
+  const tags = await prisma.tag.findMany({
+    where: { userId: user.id },
+    orderBy: { name: "asc" },
+  });
+
+  const selectedTagIds = trade.tags.map((tt) => tt.tagId);
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -21,7 +31,7 @@ export default async function EditTradePage({ params }: { params: { id: string }
         </Link>
         <h1 className="text-2xl font-semibold mt-3">Edit trade</h1>
       </div>
-      <TradeForm trade={trade} />
+      <TradeForm trade={trade} tags={tags} selectedTagIds={selectedTagIds} />
     </div>
   );
 }

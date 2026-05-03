@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -26,17 +27,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 font-semibold text-2xl">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-accent" />
-            TradeLog
-          </div>
-          <p className="text-fg-muted text-sm mt-2">
+        <div className="flex flex-col items-center mb-8">
+          <Logo asLink={false} className="text-2xl [&_span]:h-11 [&_span]:w-11 [&_svg]:h-6 [&_svg]:w-6" />
+          <p className="text-fg-muted text-sm mt-3">
             A trading diary for you and your friends.
           </p>
         </div>
 
-        <div className="rounded-lg border border-border bg-bg-card p-6 space-y-4">
+        <div className="rounded-2xl border border-border bg-bg-card p-6 space-y-4">
           <Button
             onClick={signInWithGoogle}
             disabled={loading}

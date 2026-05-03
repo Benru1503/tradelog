@@ -48,11 +48,35 @@ Open [localhost:3000](http://localhost:3000).
 npm run dev              # dev server
 npm run build            # production build
 npm run lint             # ESLint
+npm run typecheck        # TypeScript no-emit check
+npm run test             # vitest unit + component tests
+npm run test:watch       # vitest in watch mode
+npm run test:coverage    # vitest with coverage report
+npm run test:e2e         # Playwright E2E
+npm run format           # Prettier write
+npm run format:check     # Prettier check (CI)
+npm run db:reset         # drop, migrate, and seed the dev DB
 npx prisma studio        # browse the DB visually
 npx prisma migrate dev   # create + apply a migration
 npx prisma generate      # regenerate the Prisma client
 ```
 
+After running migrations, also apply the manual SQL files:
+
+```bash
+# In Supabase SQL editor (or psql), run:
+prisma/manual_constraints.sql   # CHECK constraints (Prisma can't express these)
+prisma/rls_policies.sql         # Row-level security policies
+```
+
 ## Project layout
 
 See [`CLAUDE.md`](CLAUDE.md).
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Short version: branch off `main`, conventional commit messages, lint + tests pass, open a PR.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).

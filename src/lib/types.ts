@@ -27,8 +27,3 @@ export type DashboardStats = {
   bestTrade: number;
   worstTrade: number;
 };
-
-export type EquityPoint = {
-  date: string;
-  equity: number;
-};

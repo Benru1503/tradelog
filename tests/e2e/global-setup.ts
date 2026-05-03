@@ -7,12 +7,11 @@
  * fails fast with a clear error rather than hanging.
  */
 import { createClient } from "@supabase/supabase-js";
-import { config as loadEnv } from "dotenv";
-import path from "node:path";
+import { loadEnvConfig } from "@next/env";
 import { TEST_USER_EMAIL, TEST_USER_PASSWORD, TEST_USER_NAME } from "./test-context";
 
 export default async function globalSetup() {
-  loadEnv({ path: path.resolve(__dirname, "../../.env.local") });
+  loadEnvConfig(process.cwd());
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

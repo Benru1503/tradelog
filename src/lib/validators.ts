@@ -43,3 +43,44 @@ export const tradeFormSchema = z
   );
 
 export type TradeFormInput = z.infer<typeof tradeFormSchema>;
+
+const assetType = z.enum(["STOCK", "CRYPTO", "FOREX"]);
+
+export const cashFlowFormSchema = z.object({
+  type: z.enum(["DEPOSIT", "WITHDRAWAL", "DIVIDEND", "FEE_ADJUST"]),
+  amount: positiveDecimal,
+  currency: z.string().trim().length(3).default("USD"),
+  occurredAt: z.string().min(1, "Required"),
+  note: z.string().max(500).optional().nullable(),
+});
+export type CashFlowFormInput = z.infer<typeof cashFlowFormSchema>;
+
+export const watchItemFormSchema = z
+  .object({
+    asset: z.string().trim().min(1, "Required").max(40),
+    assetType,
+    targetPrice: z.union([z.literal(""), positiveDecimal]).optional(),
+    targetDirection: z.enum(["BUY", "SELL"]).optional(),
+    note: z.string().max(500).optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      const hasPrice = data.targetPrice && data.targetPrice !== "";
+      const hasDir = !!data.targetDirection;
+      // A price without a direction can't fire an alert, so still reject that.
+      // The other way around is fine — the action drops a stray direction
+      // when there's no price, so users can leave both empty.
+      return !hasPrice || hasDir;
+    },
+    {
+      message: "Pick when to alert (Falls to ≤ / Rises to ≥)",
+      path: ["targetDirection"],
+    },
+  );
+export type WatchItemFormInput = z.infer<typeof watchItemFormSchema>;
+
+export const tickerSearchSchema = z.object({
+  q: z.string().trim().min(1).max(40),
+  assetType: assetType.optional(),
+});
+export type TickerSearchInput = z.infer<typeof tickerSearchSchema>;

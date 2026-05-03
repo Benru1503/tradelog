@@ -5,10 +5,13 @@ export type Stats = {
   totalTrades: number;
   closedTrades: number;
   openTrades: number;
+  winningTrades: number;
+  losingTrades: number;
   winRate: number;
   totalPnl: number;
   avgWin: number;
   avgLoss: number;
+  avgRR: number;
   bestTrade: number;
   worstTrade: number;
 };
@@ -31,32 +34,21 @@ export function computeStats(trades: Trade[]): Stats {
   const bestTrade = pnls.length ? Math.max(...pnls) : 0;
   const worstTrade = pnls.length ? Math.min(...pnls) : 0;
 
+  const avgRR = avgLoss === 0 ? 0 : avgWin / Math.abs(avgLoss);
+
   return {
     totalTrades: trades.length,
     closedTrades: closed.length,
     openTrades: trades.length - closed.length,
+    winningTrades: wins.length,
+    losingTrades: losses.length,
     winRate,
     totalPnl,
     avgWin,
     avgLoss,
+    avgRR,
     bestTrade,
     worstTrade,
   };
 }
 
-export type EquityPoint = { date: string; equity: number };
-
-export function computeEquityCurve(trades: Trade[]): EquityPoint[] {
-  const closed = trades
-    .filter((t) => t.status === "CLOSED" && t.pnl != null && t.exitDate != null)
-    .sort((a, b) => a.exitDate!.getTime() - b.exitDate!.getTime());
-
-  let running = new Decimal(0);
-  return closed.map((t) => {
-    running = running.plus(t.pnl ?? 0);
-    return {
-      date: t.exitDate!.toISOString(),
-      equity: running.toNumber(),
-    };
-  });
-}

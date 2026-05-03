@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
-import { config as loadEnv } from "dotenv";
-import path from "node:path";
+import { loadEnvConfig } from "@next/env";
 
-loadEnv({ path: path.resolve(__dirname, ".env.local") });
+// Use Next.js's own loader so we pick up .env, .env.local, etc. in the
+// same order the dev server does.
+loadEnvConfig(process.cwd());
 
 const PORT = Number(process.env.PORT ?? 3100);
 const BASE_URL = `http://localhost:${PORT}`;

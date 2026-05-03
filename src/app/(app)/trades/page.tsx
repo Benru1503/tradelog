@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { TradesTable } from "@/components/trades/TradesTable";
 import { TradeFilters } from "@/components/trades/TradeFilters";
 
@@ -39,7 +40,7 @@ export default async function TradesPage({
   const user = await requireUser();
   const f = parseSearchParams(searchParams);
 
-  const where: Prisma.TradeWhereInput = { userId: user.id };
+  const where: Prisma.TradeWhereInput = { userId: user.id, deletedAt: null };
   if (f.assetType) where.assetType = f.assetType;
   if (f.direction) where.direction = f.direction;
   if (f.status) where.status = f.status;
@@ -58,21 +59,21 @@ export default async function TradesPage({
     orderBy: { [f.sort]: f.dir },
   });
 
+  const openCount = trades.filter((t) => t.status === "OPEN").length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold">Trades</h1>
-          <p className="text-sm text-fg-muted mt-1">
-            {trades.length} trade{trades.length === 1 ? "" : "s"}
-          </p>
-        </div>
-        <Link href="/trades/new">
-          <Button>
-            <Plus size={16} /> New trade
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Trades"
+        subtitle={`${trades.length} total · ${openCount} open`}
+        action={
+          <Link href="/trades/new">
+            <Button>
+              <Plus size={16} /> Add Trade
+            </Button>
+          </Link>
+        }
+      />
 
       <TradeFilters />
 

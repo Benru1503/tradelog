@@ -27,48 +27,94 @@ enum TradeStatus {
   CLOSED
 }
 
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+enum CashFlowType {
+  DEPOSIT
+  WITHDRAWAL
+  DIVIDEND
+  FEE_ADJUST
+}
+
+enum TargetDirection {
+  BUY
+  SELL
+}
+
 model User {
   id          String   @id @db.Uuid
   email       String   @unique
   displayName String?
   avatarUrl   String?
+  timezone    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  trades Trade[]
-  tags   Tag[]
+  trades     Trade[]
+  tags       Tag[]
+  revisions  TradeRevision[]
+  positions  Position[]
+  cashFlows  CashFlow[]
+  watchItems WatchItem[]
 
   @@map("users")
 }
 
 model Trade {
-  id          String      @id @default(uuid()) @db.Uuid
-  userId      String      @db.Uuid
-  asset       String
-  assetType   AssetType
-  direction   Direction
-  entryPrice  Decimal     @db.Decimal(20, 8)
-  exitPrice   Decimal?    @db.Decimal(20, 8)
-  quantity    Decimal     @db.Decimal(20, 8)
-  entryDate   DateTime
-  exitDate    DateTime?
-  status      TradeStatus @default(OPEN)
-  pnl         Decimal?    @db.Decimal(20, 8)
-  pnlPercent  Decimal?    @db.Decimal(10, 4)
-  fees        Decimal     @default(0) @db.Decimal(20, 8)
-  notes       String?
-  isShared    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @db.Uuid
+  positionId String?     @db.Uuid
+  asset      String
+  assetType  AssetType
+  direction  Direction
+  entryPrice Decimal     @db.Decimal(20, 8)
+  exitPrice  Decimal?    @db.Decimal(20, 8)
+  quantity   Decimal     @db.Decimal(20, 8)
+  entryDate  DateTime
+  exitDate   DateTime?
+  status     TradeStatus @default(OPEN)
+  pnl        Decimal?    @db.Decimal(20, 8)
+  pnlPercent Decimal?    @db.Decimal(10, 4)
+  fees       Decimal     @default(0) @db.Decimal(20, 8)
+  notes      String?
+  isShared   Boolean     @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags   TradeTag[]
-  images TradeImage[]
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position  Position?       @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  tags      TradeTag[]
+  images    TradeImage[]
+  revisions TradeRevision[]
 
   @@index([userId, entryDate])
   @@index([userId, status])
+  @@index([userId, assetType])
+  @@index([userId, deletedAt])
   @@index([isShared, createdAt])
+  @@index([positionId])
   @@map("trades")
+}
+
+model TradeRevision {
+  id        String   @id @default(uuid()) @db.Uuid
+  tradeId   String   @db.Uuid
+  userId    String   @db.Uuid
+  changedAt DateTime @default(now())
+  fieldName String
+  oldValue  String?
+  newValue  String?
+
+  trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tradeId, changedAt])
+  @@index([userId, changedAt])
+  @@map("trade_revisions")
 }
 
 model Tag {
@@ -105,4 +151,107 @@ model TradeImage {
   trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
 
   @@map("trade_images")
+}
+
+// A Position groups one or more Trade legs on the same asset while open.
+// Closing the last open quantity flips status to CLOSED and snapshots
+// realizedPnl. Existing trades without a position are auto-grouped on
+// migration by (userId, asset, OPEN).
+model Position {
+  id          String         @id @default(uuid()) @db.Uuid
+  userId      String         @db.Uuid
+  asset       String
+  assetType   AssetType
+  direction   Direction
+  status      PositionStatus @default(OPEN)
+  openedAt    DateTime
+  closedAt    DateTime?
+  // Snapshotted on every leg for fast list reads — recomputed from trades on edit.
+  avgCost     Decimal        @db.Decimal(20, 8)
+  totalQty    Decimal        @db.Decimal(20, 8)
+  realizedPnl Decimal        @default(0) @db.Decimal(20, 8)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades Trade[]
+
+  @@index([userId, status, asset])
+  @@index([userId, openedAt])
+  @@map("positions")
+}
+
+// Account-level cash movements. Powers TWR/MWR (so the equity curve doesn't
+// treat a deposit as a trading gain) and feeds the Activity ledger.
+model CashFlow {
+  id         String       @id @default(uuid()) @db.Uuid
+  userId     String       @db.Uuid
+  type       CashFlowType
+  amount     Decimal      @db.Decimal(20, 8)
+  currency   String       @default("USD")
+  occurredAt DateTime
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+  @@index([userId, type])
+  @@map("cash_flows")
+}
+
+// Symbols a user is tracking but doesn't own yet. Optional target price +
+// direction power the "Distance" column and (later) alert delivery.
+model WatchItem {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  asset           String
+  assetType       AssetType
+  targetPrice     Decimal?         @db.Decimal(20, 8)
+  targetDirection TargetDirection?
+  note            String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, asset])
+  @@index([userId, createdAt])
+  @@map("watch_items")
+}
+
+// Cached resolved tickers from the market-data provider (Finnhub / CoinGecko /
+// etc). Populated on first search and TTL-refreshed. Not user-scoped.
+model AssetSymbol {
+  id            String    @id @default(uuid()) @db.Uuid
+  symbol        String
+  name          String
+  assetType     AssetType
+  exchange      String?
+  // Optional sector classification for the heatmap (Phase 3).
+  sector        String?
+  industry      String?
+  // Annual dividend yield as a decimal (0.012 = 1.2%). Provider-supplied.
+  dividendYield Decimal?  @db.Decimal(10, 6)
+  refreshedAt   DateTime  @default(now())
+
+  prices AssetPrice[]
+
+  @@unique([symbol, assetType])
+  @@index([symbol])
+  @@index([assetType, sector])
+  @@map("asset_symbols")
+}
+
+// Latest-known price per symbol. Single row per symbol, overwritten on
+// refresh. Older history is not retained here — keep this table tiny.
+model AssetPrice {
+  symbolId  String   @id @db.Uuid
+  price     Decimal  @db.Decimal(20, 8)
+  changePct Decimal? @db.Decimal(10, 4)
+  fetchedAt DateTime @default(now())
+
+  symbol AssetSymbol @relation(fields: [symbolId], references: [id], onDelete: Cascade)
+
+  @@map("asset_prices")
 }

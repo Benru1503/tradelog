@@ -1,16 +1,22 @@
+import Link from "next/link";
+import { Download } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { TagManager } from "@/components/tags/TagManager";
 
 export default async function SettingsPage() {
   const user = await requireUser();
+  const tags = await prisma.tag.findMany({
+    where: { userId: user.id },
+    orderBy: { name: "asc" },
+  });
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-fg-muted mt-1">
-          Profile and preferences.
-        </p>
-      </div>
+      <PageHeader title="Settings" subtitle="Profile, data, and account." />
 
       <Card>
         <CardHeader>
@@ -33,12 +39,45 @@ export default async function SettingsPage() {
       </Card>
 
       <Card>
+        <TagManager tags={tags} />
+      </Card>
+
+      <Card>
         <CardHeader>
-          <CardTitle>Coming soon</CardTitle>
+          <CardTitle>Your data</CardTitle>
         </CardHeader>
-        <p className="text-sm text-fg-muted">
-          Display name editing, default asset type, and currency preferences land in Phase 2.
+        <p className="text-sm text-fg-muted mb-3">
+          Download everything: trades, tags, edit history, and account info.
         </p>
+        <div className="flex gap-2">
+          <a href="/api/export" download>
+            <Button variant="secondary">
+              <Download size={14} /> Export as JSON
+            </Button>
+          </a>
+          <a href="/api/export/csv" download>
+            <Button variant="secondary">
+              <Download size={14} /> Export as CSV
+            </Button>
+          </a>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Legal</CardTitle>
+        </CardHeader>
+        <ul className="text-sm space-y-1">
+          <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
+          <li><Link href="/terms" className="hover:underline">Terms of Service</Link></li>
+        </ul>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Danger zone</CardTitle>
+        </CardHeader>
+        <DeleteAccountDialog />
       </Card>
     </div>
   );

@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/test/login"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/test/login", "/api/test/whoami"];
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -40,10 +40,15 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: getUserErr,
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+
+  if (process.env.NODE_ENV !== "production" && getUserErr && getUserErr.message !== "Auth session missing!") {
+    console.log(`[mw] ${pathname} user=${user?.email ?? "null"} err=${getUserErr.message}`);
+  }
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
