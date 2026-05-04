@@ -34,14 +34,16 @@ export default async function TradeDetailPage({ params }: { params: { id: string
     orderBy: { changedAt: "desc" },
   });
 
-  // Dividends collected during this trade's holding period. Account-wide
-  // for now — `CashFlow` doesn't carry a ticker yet, so we can't filter to
-  // this asset. Future: add `assetSymbol` to `CashFlow` and narrow here.
+  // Dividends collected during this trade's holding period, filtered to
+  // payments tagged with this asset's ticker. Older rows (before the
+  // assetSymbol column) show up only on the legacy account-wide list, so we
+  // don't surface them here unless the user re-records them.
   const dividendWindowEnd = trade.exitDate ?? new Date();
   const dividends = await prisma.cashFlow.findMany({
     where: {
       userId: user.id,
       type: "DIVIDEND",
+      assetSymbol: trade.asset,
       occurredAt: {
         gte: trade.entryDate,
         lte: dividendWindowEnd,
@@ -110,10 +112,10 @@ export default async function TradeDetailPage({ params }: { params: { id: string
             {dividends.length > 0 && (
               <span
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-profit/10 text-profit ring-1 ring-inset ring-profit/30 px-2.5 py-1 text-xs font-medium"
-                title="Account-wide dividends received during this trade's holding period. Asset-level filtering ships with the planned CashFlow.assetSymbol column."
+                title={`${trade.asset} dividends received during this trade's holding period.`}
               >
                 <Coins size={12} />
-                {formatCurrency(dividendTotal)} dividends in window
+                {formatCurrency(dividendTotal)} {trade.asset} dividends in window
                 <span className="text-fg-subtle font-normal">
                   · {dividends.length} payment{dividends.length === 1 ? "" : "s"}
                 </span>

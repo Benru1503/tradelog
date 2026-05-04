@@ -51,6 +51,15 @@ export const cashFlowFormSchema = z.object({
   amount: positiveDecimal,
   currency: z.string().trim().length(3).default("USD"),
   occurredAt: z.string().min(1, "Required"),
+  // Optional ticker; only meaningful for DIVIDEND. The action upper-cases and
+  // drops it for non-dividend types, so the validator just sanity-bounds it.
+  assetSymbol: z
+    .string()
+    .trim()
+    .max(40)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v.toUpperCase() : null)),
   note: z.string().max(500).optional().nullable(),
 });
 export type CashFlowFormInput = z.infer<typeof cashFlowFormSchema>;
@@ -84,3 +93,42 @@ export const tickerSearchSchema = z.object({
   assetType: assetType.optional(),
 });
 export type TickerSearchInput = z.infer<typeof tickerSearchSchema>;
+
+// /playground — what-if scenario. `sellDate` is optional; when omitted we
+// run the scenario through to "now" using the latest available candle.
+export const whatIfFormSchema = z
+  .object({
+    asset: z.string().trim().toUpperCase().min(1, "Required").max(40),
+    assetType,
+    buyAmount: positiveDecimal,
+    buyDate: z.string().min(1, "Required"),
+    sellDate: z.union([z.literal(""), z.string()]).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.sellDate) return true;
+      return new Date(data.sellDate) >= new Date(data.buyDate);
+    },
+    { message: "Sell date must be on or after buy date", path: ["sellDate"] },
+  );
+export type WhatIfFormInput = z.infer<typeof whatIfFormSchema>;
+
+// /playground — DCA scenario. `to` is optional; when omitted we run through
+// the latest available candle.
+export const dcaFormSchema = z
+  .object({
+    asset: z.string().trim().toUpperCase().min(1, "Required").max(40),
+    assetType,
+    amount: positiveDecimal,
+    cadence: z.enum(["WEEKLY", "MONTHLY"]),
+    from: z.string().min(1, "Required"),
+    to: z.union([z.literal(""), z.string()]).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.to) return true;
+      return new Date(data.to) >= new Date(data.from);
+    },
+    { message: "End date must be on or after start date", path: ["to"] },
+  );
+export type DcaFormInput = z.infer<typeof dcaFormSchema>;

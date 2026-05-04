@@ -16,6 +16,7 @@ export async function createCashFlow(formData: FormData): Promise<CashFlowResult
     amount: String(formData.get("amount") ?? ""),
     currency: String(formData.get("currency") ?? "USD"),
     occurredAt: String(formData.get("occurredAt") ?? ""),
+    assetSymbol: String(formData.get("assetSymbol") ?? "") || null,
     note: String(formData.get("note") ?? "") || null,
   };
   const parsed = cashFlowFormSchema.safeParse(raw);
@@ -27,6 +28,10 @@ export async function createCashFlow(formData: FormData): Promise<CashFlowResult
     };
   }
 
+  // Only dividends carry an asset; drop anything sent on the other types.
+  const assetSymbol =
+    parsed.data.type === "DIVIDEND" ? parsed.data.assetSymbol : null;
+
   await prisma.cashFlow.create({
     data: {
       userId: user.id,
@@ -34,6 +39,7 @@ export async function createCashFlow(formData: FormData): Promise<CashFlowResult
       amount: parsed.data.amount,
       currency: parsed.data.currency,
       occurredAt: new Date(parsed.data.occurredAt),
+      assetSymbol,
       note: parsed.data.note ?? null,
     },
   });

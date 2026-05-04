@@ -53,6 +53,7 @@ function flow(opts: {
     amount: new Decimal(opts.amount) as unknown as CashFlow["amount"],
     currency: "USD",
     occurredAt: opts.occurredAt,
+    assetSymbol: null,
     note: null,
     createdAt: opts.occurredAt,
   };

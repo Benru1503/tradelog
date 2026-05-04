@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
+import { TickerAutocomplete } from "@/components/ui/TickerAutocomplete";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/utils";
 import { createCashFlow } from "@/app/(app)/cashflows/actions";
@@ -141,6 +142,23 @@ export function CashFlowModal({ open, onClose, defaultType = "DEPOSIT" }: Props)
               <p className="text-xs text-loss mt-1">{fieldError("occurredAt")}</p>
             )}
           </div>
+
+          {type === "DIVIDEND" && (
+            <div>
+              <Label htmlFor="cf-asset">Ticker (optional)</Label>
+              <TickerAutocomplete
+                id="cf-asset"
+                name="assetSymbol"
+                assetType="STOCK"
+              />
+              <p className="text-xs text-fg-subtle mt-1">
+                Lets the trade-detail page narrow dividends to this ticker. Leave blank for general dividend income.
+              </p>
+              {fieldError("assetSymbol") && (
+                <p className="text-xs text-loss mt-1">{fieldError("assetSymbol")}</p>
+              )}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="cf-note">Note (optional)</Label>

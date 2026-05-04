@@ -44,7 +44,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Insights",
     items: [
       { href: "/analytics", label: "Analytics", icon: BarChart3 },
-      { href: "/playground", label: "Playground", icon: FlaskConical, disabled: true },
+      { href: "/playground", label: "Playground", icon: FlaskConical },
     ],
   },
   {

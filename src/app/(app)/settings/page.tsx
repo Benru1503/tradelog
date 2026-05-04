@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { Download, LogOut } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -20,7 +20,14 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>Profile</CardTitle>
+            <form action="/auth/signout" method="post">
+              <Button type="submit" variant="ghost" size="sm">
+                <LogOut size={14} /> Sign out
+              </Button>
+            </form>
+          </div>
         </CardHeader>
         <dl className="text-sm space-y-3">
           <div className="flex justify-between border-b border-border pb-2">

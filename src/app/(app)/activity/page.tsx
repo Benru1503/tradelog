@@ -93,6 +93,7 @@ export default async function ActivityPage({ searchParams }: PageProps) {
       type: f.type,
       amount: f.amount.toString(),
       currency: f.currency,
+      assetSymbol: f.assetSymbol,
       note: f.note,
     });
   }

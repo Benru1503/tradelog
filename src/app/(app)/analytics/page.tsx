@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { decoratePosition } from "@/lib/positions";
 import { enrichStockSectors } from "@/lib/marketdata/sectors";
+import { enrichStockYields } from "@/lib/marketdata/yields";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Coins } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import type { HeatmapTile } from "@/components/analytics/SectorHeatmap";
 
 const SectorHeatmap = dynamic(
@@ -65,7 +67,7 @@ export default async function AnalyticsPage() {
     },
     include: { prices: true },
   });
-  await enrichStockSectors(symbols);
+  await Promise.all([enrichStockSectors(symbols), enrichStockYields(symbols)]);
 
   const symbolMap = new Map(
     symbols.map((s) => [`${s.symbol}:${s.assetType}`, s] as const),
@@ -73,6 +75,12 @@ export default async function AnalyticsPage() {
 
   const tiles: HeatmapTile[] = [];
   const allocSlices: Array<{ asset: string; value: number; pct: number }> = [];
+  const dividendRows: Array<{
+    asset: string;
+    yieldPct: number;
+    annualIncome: number;
+  }> = [];
+  let projectedAnnualDividend = 0;
 
   for (const p of positions) {
     const sym = symbolMap.get(`${p.asset}:${p.assetType}`);
@@ -94,7 +102,29 @@ export default async function AnalyticsPage() {
       unrealizedPct: decorated.unrealizedPct,
     });
     allocSlices.push({ asset: p.asset, value: allocation, pct: 0 });
+
+    // Projected dividend = market value * indicated annual yield. Long-only
+    // and stocks-only — shorts pay dividends out, crypto/forex don't have a
+    // yield in this sense.
+    if (
+      p.assetType === "STOCK" &&
+      p.direction === "LONG" &&
+      sym?.dividendYield &&
+      decorated.marketValue != null
+    ) {
+      const yieldPct = new Decimal(sym.dividendYield.toString()).toNumber();
+      const annualIncome = decorated.marketValue * yieldPct;
+      if (annualIncome > 0) {
+        projectedAnnualDividend += annualIncome;
+        dividendRows.push({
+          asset: p.asset,
+          yieldPct,
+          annualIncome,
+        });
+      }
+    }
   }
+  dividendRows.sort((a, b) => b.annualIncome - a.annualIncome);
 
   const totalAlloc = allocSlices.reduce((a, b) => a + b.value, 0);
   for (const s of allocSlices) {
@@ -159,6 +189,58 @@ export default async function AnalyticsPage() {
           </ul>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <Coins size={16} className="text-profit" />
+              Projected annual dividend
+            </CardTitle>
+            <span className="text-[11px] text-fg-subtle">
+              Market value × indicated annual yield · long stocks only
+            </span>
+          </div>
+        </CardHeader>
+        {dividendRows.length === 0 ? (
+          <p className="text-sm text-fg-muted">
+            No dividend yields cached yet. Yields are pulled from Finnhub the
+            first time you load this page after holding a stock — refresh in a
+            moment if Finnhub was rate-limited.
+          </p>
+        ) : (
+          <>
+            <div className="text-3xl font-semibold font-mono tabular-nums text-profit mb-1">
+              {formatCurrency(projectedAnnualDividend)}
+            </div>
+            <p className="text-xs text-fg-subtle mb-4">
+              ≈ {formatCurrency(projectedAnnualDividend / 12)} per month at
+              current prices and yields.
+            </p>
+            <ul className="space-y-2">
+              {dividendRows.map((d) => (
+                <li key={d.asset} className="flex items-center gap-3 text-sm">
+                  <span className="font-semibold w-16 truncate">{d.asset}</span>
+                  <span className="text-xs text-fg-muted font-mono w-20 tabular-nums">
+                    {(d.yieldPct * 100).toFixed(2)}% yield
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-bg-elevated overflow-hidden">
+                    <div
+                      className="h-full bg-profit/60 rounded-full"
+                      style={{
+                        width: `${Math.min(100, (d.annualIncome / projectedAnnualDividend) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono tabular-nums w-20 text-right text-profit">
+                    {formatCurrency(d.annualIncome)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </Card>
 
       <p className="text-[11px] text-fg-subtle">
         30-day allocation drift coming once we start snapshotting daily

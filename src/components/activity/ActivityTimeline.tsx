@@ -41,6 +41,7 @@ export type ActivityEvent =
       type: "DEPOSIT" | "WITHDRAWAL" | "DIVIDEND" | "FEE_ADJUST";
       amount: string;
       currency: string;
+      assetSymbol: string | null;
       note: string | null;
     }
   | {
@@ -232,6 +233,11 @@ function renderBody(event: ActivityEvent) {
       return (
         <div className="text-sm flex items-center gap-2">
           <span className="font-medium">{label}</span>
+          {event.assetSymbol && (
+            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-bg-elevated text-fg-muted">
+              {event.assetSymbol}
+            </span>
+          )}
           <span
             className={cn(
               "font-mono tabular-nums text-sm",

@@ -44,6 +44,11 @@ enum TargetDirection {
   SELL
 }
 
+enum SimKind {
+  WHAT_IF
+  DCA
+}
+
 model User {
   id          String   @id @db.Uuid
   email       String   @unique
@@ -53,12 +58,13 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  trades     Trade[]
-  tags       Tag[]
-  revisions  TradeRevision[]
-  positions  Position[]
-  cashFlows  CashFlow[]
-  watchItems WatchItem[]
+  trades       Trade[]
+  tags         Tag[]
+  revisions    TradeRevision[]
+  positions    Position[]
+  cashFlows    CashFlow[]
+  watchItems   WatchItem[]
+  simSnapshots SimSnapshot[]
 
   @@map("users")
 }
@@ -184,19 +190,24 @@ model Position {
 // Account-level cash movements. Powers TWR/MWR (so the equity curve doesn't
 // treat a deposit as a trading gain) and feeds the Activity ledger.
 model CashFlow {
-  id         String       @id @default(uuid()) @db.Uuid
-  userId     String       @db.Uuid
-  type       CashFlowType
-  amount     Decimal      @db.Decimal(20, 8)
-  currency   String       @default("USD")
-  occurredAt DateTime
-  note       String?
-  createdAt  DateTime     @default(now())
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  type        CashFlowType
+  amount      Decimal      @db.Decimal(20, 8)
+  currency    String       @default("USD")
+  occurredAt  DateTime
+  // Ticker the flow is attributable to. Only meaningful for DIVIDEND today;
+  // null on deposits/withdrawals/fees. Lets the trade-detail page narrow the
+  // "dividends in window" chip to the actual ticker.
+  assetSymbol String?
+  note        String?
+  createdAt   DateTime     @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, occurredAt])
   @@index([userId, type])
+  @@index([userId, type, assetSymbol])
   @@map("cash_flows")
 }
 
@@ -241,6 +252,23 @@ model AssetSymbol {
   @@index([symbol])
   @@index([assetType, sector])
   @@map("asset_symbols")
+}
+
+// Saved Playground scenarios (what-if & DCA). Sandbox-only — never read by
+// the dashboard or analytics; lives entirely on /playground so users can
+// rerun or share a setup later.
+model SimSnapshot {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  kind      SimKind
+  params    Json
+  result    Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("sim_snapshots")
 }
 
 // Latest-known price per symbol. Single row per symbol, overwritten on

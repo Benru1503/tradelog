@@ -100,6 +100,27 @@ export const finnhubProvider = {
     return industry && industry.length > 0 ? industry : null;
   },
 
+  // Annualised indicated dividend yield (e.g. 0.012 = 1.2%). Free tier
+  // exposes `/stock/metric?metric=all`, which returns dozens of fields — we
+  // only consume `dividendYieldIndicatedAnnual`. Provider returns it as a
+  // **percent** (e.g. 1.2), so we divide by 100 to get a decimal.
+  async getDividendYield(providerSymbol: string): Promise<number | null> {
+    const k = apiKey();
+    if (!k) return null;
+    const url = new URL(`${FINNHUB_BASE}/stock/metric`);
+    url.searchParams.set("symbol", providerSymbol);
+    url.searchParams.set("metric", "all");
+    url.searchParams.set("token", k);
+    const res = await safeFetch(url);
+    if (!res) return null;
+    const data = (await res.json().catch(() => null)) as
+      | { metric?: { dividendYieldIndicatedAnnual?: number | null } }
+      | null;
+    const pct = data?.metric?.dividendYieldIndicatedAnnual;
+    if (pct == null || !Number.isFinite(pct) || pct <= 0) return null;
+    return pct / 100;
+  },
+
   async getQuote(providerSymbol: string): Promise<Quote | null> {
     const k = apiKey();
     if (!k) return null;
