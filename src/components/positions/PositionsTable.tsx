@@ -1,9 +1,13 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { cn, formatCurrency, formatNumber, formatPercent, pnlColorClass } from "@/lib/utils";
 import { DirectionBadge } from "@/components/ui/DirectionBadge";
 import type { PositionRow } from "@/lib/positions";
 
 export function PositionsTable({ rows }: { rows: PositionRow[] }) {
+  const router = useRouter();
+
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-bg-card p-10 text-center text-sm text-fg-subtle">
@@ -32,18 +36,19 @@ export function PositionsTable({ rows }: { rows: PositionRow[] }) {
             {rows.map(({ position, marketPrice, marketValue, unrealizedPnl, unrealizedPct }) => (
               <tr
                 key={position.id}
-                className="group relative border-b border-border last:border-0 hover:bg-bg-elevated/40 transition-colors"
+                role="link"
+                tabIndex={0}
+                aria-label={`View ${position.asset} position`}
+                onClick={() => router.push(`/positions/${position.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/positions/${position.id}`);
+                  }
+                }}
+                className="cursor-pointer border-b border-border last:border-0 hover:bg-bg-elevated/40 focus:bg-bg-elevated/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40 transition-colors"
               >
-                <td className="px-5 py-4 font-semibold">
-                  <Link
-                    href={`/positions/${position.id}`}
-                    prefetch
-                    className="absolute inset-0 z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded"
-                  >
-                    <span className="sr-only">View {position.asset} position</span>
-                  </Link>
-                  <span className="relative">{position.asset}</span>
-                </td>
+                <td className="px-5 py-4 font-semibold">{position.asset}</td>
                 <td className="px-5 py-4 text-fg-muted text-xs uppercase tracking-wider">
                   {position.assetType}
                 </td>
