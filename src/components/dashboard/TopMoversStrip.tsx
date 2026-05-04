@@ -32,7 +32,10 @@ export function TopMoversStrip({ trades }: { trades: MoverTrade[] }) {
     const sorted = [...inScope].sort((a, b) => b.pnl - a.pnl);
     return {
       winners: sorted.filter((t) => t.pnl > 0).slice(0, 3),
-      losers: sorted.filter((t) => t.pnl < 0).slice(-3).reverse(),
+      losers: sorted
+        .filter((t) => t.pnl < 0)
+        .slice(-3)
+        .reverse(),
     };
   }, [trades, scope]);
 
@@ -71,9 +74,7 @@ function Column({
 }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-2">
-        {label}
-      </div>
+      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-2">{label}</div>
       {trades.length === 0 ? (
         <div className="text-xs text-fg-subtle py-2">{emptyHint}</div>
       ) : (
@@ -102,9 +103,7 @@ function Column({
                       t.pnlPercent == null ? "text-fg-subtle" : pnlColorClass(t.pnlPercent),
                     )}
                   >
-                    {t.pnlPercent == null
-                      ? "—"
-                      : formatPercent(t.pnlPercent, { signed: true })}
+                    {t.pnlPercent == null ? "—" : formatPercent(t.pnlPercent, { signed: true })}
                   </span>
                 </div>
               </Link>

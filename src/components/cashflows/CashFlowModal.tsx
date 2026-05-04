@@ -146,13 +146,10 @@ export function CashFlowModal({ open, onClose, defaultType = "DEPOSIT" }: Props)
           {type === "DIVIDEND" && (
             <div>
               <Label htmlFor="cf-asset">Ticker (optional)</Label>
-              <TickerAutocomplete
-                id="cf-asset"
-                name="assetSymbol"
-                assetType="STOCK"
-              />
+              <TickerAutocomplete id="cf-asset" name="assetSymbol" assetType="STOCK" />
               <p className="text-xs text-fg-subtle mt-1">
-                Lets the trade-detail page narrow dividends to this ticker. Leave blank for general dividend income.
+                Lets the trade-detail page narrow dividends to this ticker. Leave blank for general
+                dividend income.
               </p>
               {fieldError("assetSymbol") && (
                 <p className="text-xs text-loss mt-1">{fieldError("assetSymbol")}</p>
@@ -162,12 +159,7 @@ export function CashFlowModal({ open, onClose, defaultType = "DEPOSIT" }: Props)
 
           <div>
             <Label htmlFor="cf-note">Note (optional)</Label>
-            <Textarea
-              id="cf-note"
-              name="note"
-              placeholder="From Schwab brokerage…"
-              rows={2}
-            />
+            <Textarea id="cf-note" name="note" placeholder="From Schwab brokerage…" rows={2} />
           </div>
         </ModalBody>
         <ModalFooter>

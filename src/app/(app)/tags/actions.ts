@@ -5,15 +5,11 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 
-export type TagResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type TagResult = { ok: true } | { ok: false; error: string };
 
 const createTagSchema = z.object({
   name: z.string().trim().min(1).max(40),
-  color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/i, "Color must be a hex like #5fd0f5"),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/i, "Color must be a hex like #5fd0f5"),
 });
 
 export async function createTag(formData: FormData): Promise<TagResult> {

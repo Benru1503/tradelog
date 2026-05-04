@@ -60,8 +60,7 @@ export function EquityCurve({ data }: { data: DashboardPoint[] }) {
     );
   }
 
-  const dataKey: keyof DashboardPoint =
-    mode === "TRADING" ? "tradingPnl" : "accountValue";
+  const dataKey: keyof DashboardPoint = mode === "TRADING" ? "tradingPnl" : "accountValue";
   const last = (filtered[filtered.length - 1]?.[dataKey] as number) ?? 0;
   const stroke = last >= 0 ? "#22c55e" : "#ef4444";
 

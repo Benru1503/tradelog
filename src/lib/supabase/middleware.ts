@@ -46,7 +46,11 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (process.env.NODE_ENV !== "production" && getUserErr && getUserErr.message !== "Auth session missing!") {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    getUserErr &&
+    getUserErr.message !== "Auth session missing!"
+  ) {
     console.log(`[mw] ${pathname} user=${user?.email ?? "null"} err=${getUserErr.message}`);
   }
 

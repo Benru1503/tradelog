@@ -16,9 +16,7 @@ export default function Error({
         <p className="text-sm text-fg-muted">
           The error has been logged. Try again, or head back to the dashboard.
         </p>
-        {error.digest && (
-          <p className="text-xs font-mono text-fg-muted">ref: {error.digest}</p>
-        )}
+        {error.digest && <p className="text-xs font-mono text-fg-muted">ref: {error.digest}</p>}
         <div className="flex justify-center gap-2 pt-2">
           <Button onClick={reset}>Try again</Button>
           <a href="/dashboard">

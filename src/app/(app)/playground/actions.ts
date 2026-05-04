@@ -138,9 +138,7 @@ export async function runWhatIf(formData: FormData): Promise<WhatIfResponse> {
   };
 }
 
-export type SnapshotResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type SnapshotResult = { ok: true } | { ok: false; error: string };
 
 export async function saveWhatIfSnapshot(
   params: WhatIfParams,

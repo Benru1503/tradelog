@@ -115,9 +115,7 @@ export function TradeChart({ candles, marks, priceLine = null }: TradeChartProps
             time: snapped as Time,
             position: isEntry ? ("belowBar" as const) : ("aboveBar" as const),
             color: isEntry ? "#5fd0f5" : "#a855f7",
-            shape: (isEntry === isLong ? "arrowUp" : "arrowDown") as
-              | "arrowUp"
-              | "arrowDown",
+            shape: (isEntry === isLong ? "arrowUp" : "arrowDown") as "arrowUp" | "arrowDown",
             text: `${isEntry ? "Entry" : "Exit"} ${formatPrice(m.price)}${
               m.qty ? ` · ${m.qty}` : ""
             }`,

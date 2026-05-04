@@ -168,26 +168,15 @@ I have a working Next.js + Supabase + Prisma trading diary app (TradeLog). I nee
 If doing this in stages:
 
 **Phase A — Don't ship without these:**
+
 1. **Security** (§1: auth guards, RLS, input validation, env audit, file upload validation)
 2. **Privacy & Legal** (§2: privacy policy, ToS, account deletion, robots.txt) — needed before going beyond OAuth test users
 3. **Data Integrity** (§3: soft deletes decision, CHECK constraints, audit trail) — schema decisions are painful to retrofit
 4. **Error Handling & Observability** (§6: error boundary, toasts, error pages, Sentry actually wired up)
 
-**Phase B — Should-haves before opening to friends:**
-5. **UX Safety Nets** (§7: confirm dialogs, undo, react-hook-form, optimistic UI)
-6. **Code Quality** (§8: linting, formatting, pre-commit hooks)
-7. **Testing** (§4: unit tests for utils, then component tests, then E2E)
-8. **CI/CD** (§5: GitHub Actions)
-9. **Mobile & Browser** (§10: responsive pass, viewport, favicons, manifest)
-10. **Dependency Hygiene** (§13: Dependabot, .nvmrc, engines)
+**Phase B — Should-haves before opening to friends:** 5. **UX Safety Nets** (§7: confirm dialogs, undo, react-hook-form, optimistic UI) 6. **Code Quality** (§8: linting, formatting, pre-commit hooks) 7. **Testing** (§4: unit tests for utils, then component tests, then E2E) 8. **CI/CD** (§5: GitHub Actions) 9. **Mobile & Browser** (§10: responsive pass, viewport, favicons, manifest) 10. **Dependency Hygiene** (§13: Dependabot, .nvmrc, engines)
 
-**Phase C — Polish:**
-11. **Documentation** (§11: README, API docs, CONTRIBUTING)
-12. **Performance** (§9: indexes, pagination, lazy loading)
-13. **Accessibility** (§14: keyboard nav, contrast, ARIA, focus traps)
-14. **Deployment** (§15: env separation, health check depth, seed script)
-15. **Domain-Specific** (§16: CSV import/export, timezone, currency formatting)
-16. **Git & Repo Hygiene** (§12: conventional commits, CHANGELOG)
+**Phase C — Polish:** 11. **Documentation** (§11: README, API docs, CONTRIBUTING) 12. **Performance** (§9: indexes, pagination, lazy loading) 13. **Accessibility** (§14: keyboard nav, contrast, ARIA, focus traps) 14. **Deployment** (§15: env separation, health check depth, seed script) 15. **Domain-Specific** (§16: CSV import/export, timezone, currency formatting) 16. **Git & Repo Hygiene** (§12: conventional commits, CHANGELOG)
 
 ## Decisions locked in:
 

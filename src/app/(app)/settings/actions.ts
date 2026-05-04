@@ -6,9 +6,11 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function deleteAccount(confirmation: string): Promise<{ ok: boolean; error?: string }> {
+export async function deleteAccount(
+  confirmation: string,
+): Promise<{ ok: boolean; error?: string }> {
   if (confirmation !== "DELETE") {
-    return { ok: false, error: 'Type DELETE to confirm.' };
+    return { ok: false, error: "Type DELETE to confirm." };
   }
 
   const user = await requireUser();
@@ -22,7 +24,10 @@ export async function deleteAccount(confirmation: string): Promise<{ ok: boolean
       userId: user.id,
       error: adminErr.message,
     });
-    return { ok: false, error: "Account data deleted, but auth removal failed. Contact the operator." };
+    return {
+      ok: false,
+      error: "Account data deleted, but auth removal failed. Contact the operator.",
+    };
   }
 
   const supabase = createClient();

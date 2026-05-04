@@ -113,8 +113,7 @@ export function computeMWR(trades: Trade[], flows: CashFlow[]): number {
     }
   }
   // Final account value, dated at the last event.
-  const tLast =
-    (events[events.length - 1]!.date.getTime() - t0) / 86_400_000;
+  const tLast = (events[events.length - 1]!.date.getTime() - t0) / 86_400_000;
   if (runningValue.gt(0)) {
     tuples.push({ t: tLast, amt: runningValue });
   }
@@ -122,10 +121,7 @@ export function computeMWR(trades: Trade[], flows: CashFlow[]): number {
   if (tuples.length < 2) return 0;
 
   const npv = (r: number) =>
-    tuples.reduce(
-      (acc, x) => acc + x.amt.toNumber() / Math.pow(1 + r, x.t / 365),
-      0,
-    );
+    tuples.reduce((acc, x) => acc + x.amt.toNumber() / Math.pow(1 + r, x.t / 365), 0);
 
   // Bisection.
   let lo = -0.99;
@@ -166,10 +162,7 @@ export function computeTradingPnlSeries(trades: Trade[]): SeriesPoint[] {
 
 // Series for "Account Value" mode: running balance including cash flows.
 // Deposit days lift the line; withdrawal days drop it.
-export function computeAccountValueSeries(
-  trades: Trade[],
-  flows: CashFlow[],
-): SeriesPoint[] {
+export function computeAccountValueSeries(trades: Trade[], flows: CashFlow[]): SeriesPoint[] {
   const events = buildTimeline(trades, flows);
   let value = new Decimal(0);
   return events.map((e) => {
@@ -191,10 +184,7 @@ export type DashboardPoint = {
   flow?: { type: CashFlow["type"]; amount: number };
 };
 
-export function computeDashboardSeries(
-  trades: Trade[],
-  flows: CashFlow[],
-): DashboardPoint[] {
+export function computeDashboardSeries(trades: Trade[], flows: CashFlow[]): DashboardPoint[] {
   const events = buildTimeline(trades, flows);
   let pnl = new Decimal(0);
   let acct = new Decimal(0);
@@ -227,10 +217,7 @@ export function computeCashOnHand(
   flows: CashFlow[],
   openPositionsCostBasis: Decimal | number = 0,
 ): number {
-  const flowsTotal = flows.reduce(
-    (acc, f) => acc.plus(signedFlow(f)),
-    new Decimal(0),
-  );
+  const flowsTotal = flows.reduce((acc, f) => acc.plus(signedFlow(f)), new Decimal(0));
   // Realized P&L from closed trades has already settled into cash.
   const tied = new Decimal(openPositionsCostBasis.toString());
   return flowsTotal.minus(tied).toNumber();

@@ -44,7 +44,7 @@ export default async function PositionsPage({ searchParams }: PageProps) {
   // Scope price lookup to symbols the user actually holds. Dedupe (asset,
   // assetType) pairs across open + closed positions before querying.
   const heldKeys = new Set<string>();
-  const heldPairs: { symbol: string; assetType: typeof allPositions[number]["assetType"] }[] = [];
+  const heldPairs: { symbol: string; assetType: (typeof allPositions)[number]["assetType"] }[] = [];
   for (const p of allPositions) {
     const key = `${p.asset}:${p.assetType}`;
     if (heldKeys.has(key)) continue;
@@ -81,10 +81,7 @@ export default async function PositionsPage({ searchParams }: PageProps) {
   const visible = tab === "closed" ? closed : open;
 
   // KPI calculations.
-  const openValue = open.reduce(
-    (acc, r) => acc + (r.marketValue ?? r.costBasis),
-    0,
-  );
+  const openValue = open.reduce((acc, r) => acc + (r.marketValue ?? r.costBasis), 0);
   const usedMarketPriceFor = open.filter((r) => r.marketValue != null).length;
   const openValueIsCostBasis = usedMarketPriceFor === 0 && open.length > 0;
   const unrealized = open.reduce((acc, r) => acc + (r.unrealizedPnl ?? 0), 0);
@@ -101,10 +98,7 @@ export default async function PositionsPage({ searchParams }: PageProps) {
   const cashOnHand = computeCashOnHand(cashFlows, openCostBasis);
 
   // Allocation slices for the donut. Use marketValue when available, else cost basis.
-  const totalAllocBase = open.reduce(
-    (acc, r) => acc + (r.marketValue ?? r.costBasis),
-    0,
-  );
+  const totalAllocBase = open.reduce((acc, r) => acc + (r.marketValue ?? r.costBasis), 0);
   const slices = open
     .map((r) => {
       const value = r.marketValue ?? r.costBasis;
@@ -139,11 +133,7 @@ export default async function PositionsPage({ searchParams }: PageProps) {
         />
         <StatsCard
           label="Unrealized P&L"
-          value={
-            !unrealizedHasData
-              ? "—"
-              : formatCurrency(unrealized, { signed: true })
-          }
+          value={!unrealizedHasData ? "—" : formatCurrency(unrealized, { signed: true })}
           tone={
             !unrealizedHasData
               ? "neutral"
@@ -153,22 +143,12 @@ export default async function PositionsPage({ searchParams }: PageProps) {
                   ? "loss"
                   : "neutral"
           }
-          hint={
-            !unrealizedHasData
-              ? "Pending live prices"
-              : "Open positions"
-          }
+          hint={!unrealizedHasData ? "Pending live prices" : "Open positions"}
         />
         <StatsCard
           label="Realized YTD"
-          value={
-            allClosedTrades.length === 0
-              ? "—"
-              : formatCurrency(realizedYtd, { signed: true })
-          }
-          tone={
-            realizedYtd > 0 ? "profit" : realizedYtd < 0 ? "loss" : "neutral"
-          }
+          value={allClosedTrades.length === 0 ? "—" : formatCurrency(realizedYtd, { signed: true })}
+          tone={realizedYtd > 0 ? "profit" : realizedYtd < 0 ? "loss" : "neutral"}
           hint={`Closed ${new Date().getFullYear()}`}
         />
         <StatsCard
@@ -194,9 +174,7 @@ export default async function PositionsPage({ searchParams }: PageProps) {
             <CardTitle>Top holdings</CardTitle>
           </CardHeader>
           {slices.length === 0 ? (
-            <div className="py-8 text-center text-sm text-fg-subtle">
-              No open positions yet.
-            </div>
+            <div className="py-8 text-center text-sm text-fg-subtle">No open positions yet.</div>
           ) : (
             <ul className="space-y-2">
               {slices.slice(0, 6).map((s) => (

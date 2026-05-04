@@ -11,7 +11,10 @@ export function PlaygroundTabs() {
   const [tab, setTab] = useState<Tab>("WHAT_IF");
   return (
     <div className="space-y-3">
-      <div role="tablist" className="inline-flex rounded-lg border border-border bg-bg-elevated/40 p-1">
+      <div
+        role="tablist"
+        className="inline-flex rounded-lg border border-border bg-bg-elevated/40 p-1"
+      >
         <TabButton active={tab === "WHAT_IF"} onClick={() => setTab("WHAT_IF")}>
           What if
         </TabButton>
@@ -41,9 +44,7 @@ function TabButton({
       onClick={onClick}
       className={cn(
         "px-3 py-1.5 text-sm rounded-md transition-colors",
-        active
-          ? "bg-bg-elevated text-fg ring-1 ring-border-strong"
-          : "text-fg-muted hover:text-fg",
+        active ? "bg-bg-elevated text-fg ring-1 ring-border-strong" : "text-fg-muted hover:text-fg",
       )}
     >
       {children}

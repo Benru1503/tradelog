@@ -47,8 +47,7 @@ export function SectorHeatmap({ tiles }: Props) {
   }
   const data = Array.from(bySector.values()).sort(
     (a, b) =>
-      b.children.reduce((s, c) => s + c.size, 0) -
-      a.children.reduce((s, c) => s + c.size, 0),
+      b.children.reduce((s, c) => s + c.size, 0) - a.children.reduce((s, c) => s + c.size, 0),
   );
 
   return (
@@ -62,10 +61,7 @@ export function SectorHeatmap({ tiles }: Props) {
           isAnimationActive={false}
           content={<TileContent />}
         >
-          <Tooltip
-            cursor={false}
-            content={<HeatmapTooltip />}
-          />
+          <Tooltip cursor={false} content={<HeatmapTooltip />} />
         </Treemap>
       </ResponsiveContainer>
     </div>
@@ -151,11 +147,7 @@ function TileContent(props: RechartsTileProps) {
     </g>
   );
 
-  return props.positionId ? (
-    <Link href={`/positions/${props.positionId}`}>{tile}</Link>
-  ) : (
-    tile
-  );
+  return props.positionId ? <Link href={`/positions/${props.positionId}`}>{tile}</Link> : tile;
 }
 
 function colorFor(pct: number | null): string {

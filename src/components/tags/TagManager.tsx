@@ -61,16 +61,12 @@ export function TagManager({ tags }: { tags: Tag[] }) {
     <div className="space-y-4" id="tags">
       <h2 className="text-base font-semibold">Tags</h2>
       <p className="text-sm text-fg-muted">
-        Use tags to label trades by strategy, setup, or anything else you want
-        to slice by later.
+        Use tags to label trades by strategy, setup, or anything else you want to slice by later.
       </p>
 
       <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-2">
         <div>
-          <label
-            htmlFor="tag-name"
-            className="text-xs text-fg-muted block mb-1"
-          >
+          <label htmlFor="tag-name" className="text-xs text-fg-muted block mb-1">
             Name
           </label>
           <Input

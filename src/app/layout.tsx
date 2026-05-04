@@ -11,10 +11,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   manifest: "/manifest.json",
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/favicon.ico" }, { url: "/icon.svg", type: "image/svg+xml" }],
     apple: "/apple-touch-icon.png",
   },
 };

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Soft delete on `Trade` (`deletedAt`) — paired with an Undo toast on the trade detail page.
 - `TradeRevision` table — append-only audit log of edits to entry/exit prices, quantity, direction, and dates. Surfaced as "Edit history" on the trade detail page.
 - New indexes on `Trade(userId, assetType)` and `Trade(userId, deletedAt)`.
@@ -30,12 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dashboard `EquityCurve` lazy-loaded via `next/dynamic` to keep recharts out of the initial bundle.
 
 ### Changed
+
 - `deleteTrade` now soft-deletes (sets `deletedAt`) instead of removing the row.
 - `updateTrade` writes to `TradeRevision` for any change to tracked fields.
 - All Trade list/find queries now filter `deletedAt: null`.
 - CSP header is intentionally not set yet — needs per-environment tuning for Supabase + Google OAuth.
 
 ### Deferred
+
 - React Hook Form refactor of `TradeForm` — current uncontrolled-form UX is good enough.
 - PostHog product analytics — Vercel Analytics handles web vitals; PostHog can come back when there's a question to answer.
 - Next.js 14 → 16 upgrade — `npm audit` flags 4 high-severity issues all resolved by upgrading. Major version, defer until tested.
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] — 2026-04-26
 
 ### Added
+
 - Initial MVP scaffolding: Next.js 14 App Router, Supabase Auth (Google OAuth), Prisma + PostgreSQL.
 - Core models: User, Trade, Tag, TradeTag, TradeImage.
 - Pages: dashboard, trade log, trade create/edit/detail, settings, login.

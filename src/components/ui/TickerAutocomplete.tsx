@@ -153,9 +153,7 @@ export function TickerAutocomplete({
         <div className="absolute z-20 mt-1 w-full rounded-xl border border-border bg-bg-card shadow-xl overflow-hidden">
           {hits.length === 0 ? (
             <div className="px-3 py-2.5 text-xs text-fg-subtle">
-              {loading
-                ? "Searching…"
-                : `Press Enter to use "${value.trim().toUpperCase()}"`}
+              {loading ? "Searching…" : `Press Enter to use "${value.trim().toUpperCase()}"`}
             </div>
           ) : (
             <ul role="listbox" className="max-h-64 overflow-y-auto scrollbar-thin">
@@ -174,9 +172,7 @@ export function TickerAutocomplete({
                     i === highlight ? "bg-bg-elevated" : "",
                   )}
                 >
-                  <span className="font-mono font-semibold w-16 truncate">
-                    {h.symbol}
-                  </span>
+                  <span className="font-mono font-semibold w-16 truncate">{h.symbol}</span>
                   <span className="flex-1 min-w-0 truncate text-fg-muted text-xs">
                     {h.name}
                     {h.exchange && h.assetType === "STOCK" && (

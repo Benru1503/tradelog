@@ -31,11 +31,13 @@ export function DeleteAccountDialog() {
   return (
     <div className="space-y-3 rounded border border-loss/40 bg-loss/5 p-4">
       <p className="text-sm">
-        This permanently deletes your account, all trades, tags, edit history, and screenshots.
-        It cannot be undone.
+        This permanently deletes your account, all trades, tags, edit history, and screenshots. It
+        cannot be undone.
       </p>
       <div className="space-y-1">
-        <Label htmlFor="confirm">Type <code className="font-mono">DELETE</code> to confirm</Label>
+        <Label htmlFor="confirm">
+          Type <code className="font-mono">DELETE</code> to confirm
+        </Label>
         <Input
           id="confirm"
           value={confirmation}

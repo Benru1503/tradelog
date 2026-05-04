@@ -97,11 +97,7 @@ function advanceCadence(d: Date, cadence: DcaCadence): Date {
   return next;
 }
 
-function generateContributionDates(
-  from: Date,
-  to: Date,
-  cadence: DcaCadence,
-): Date[] {
+function generateContributionDates(from: Date, to: Date, cadence: DcaCadence): Date[] {
   const out: Date[] = [];
   let cur = new Date(from);
   // Cap to defend against pathological ranges (~190 years weekly).
@@ -115,9 +111,7 @@ function generateContributionDates(
 // XIRR via bisection. Cash flows: contributions are negative (money out),
 // final value is positive (money in). Returns annualized rate, or null if
 // the cash-flow signs don't permit a solution.
-export function xirr(
-  cashflows: { time: number; amount: number }[],
-): number | null {
+export function xirr(cashflows: { time: number; amount: number }[]): number | null {
   if (cashflows.length < 2) return null;
   const hasNeg = cashflows.some((c) => c.amount < 0);
   const hasPos = cashflows.some((c) => c.amount > 0);
@@ -125,8 +119,7 @@ export function xirr(
   const t0 = cashflows[0]!.time;
   const npv = (r: number) =>
     cashflows.reduce(
-      (s, cf) =>
-        s + cf.amount / Math.pow(1 + r, (cf.time - t0) / (365.25 * 86400)),
+      (s, cf) => s + cf.amount / Math.pow(1 + r, (cf.time - t0) / (365.25 * 86400)),
       0,
     );
   let lo = -0.99;
@@ -150,10 +143,7 @@ export function xirr(
   return (lo + hi) / 2;
 }
 
-export function simulateDca(
-  candles: Candle[],
-  input: DcaInput,
-): DcaResult | null {
+export function simulateDca(candles: Candle[], input: DcaInput): DcaResult | null {
   if (candles.length === 0) return null;
   const amount = new Decimal(input.amount);
   if (amount.lte(0)) return null;
@@ -215,9 +205,7 @@ export function simulateDca(
     last;
   const finalValue = totalShares.mul(finalCandle.close);
   const pnl = finalValue.minus(totalInvested);
-  const pnlPct = totalInvested.gt(0)
-    ? pnl.div(totalInvested).mul(100)
-    : new Decimal(0);
+  const pnlPct = totalInvested.gt(0) ? pnl.div(totalInvested).mul(100) : new Decimal(0);
 
   const cashflows = [
     ...contributions.map((c) => ({ time: c.time, amount: -c.amount })),
@@ -240,17 +228,12 @@ export function simulateDca(
   };
 }
 
-export function simulateWhatIf(
-  candles: Candle[],
-  input: WhatIfInput,
-): WhatIfResult | null {
+export function simulateWhatIf(candles: Candle[], input: WhatIfInput): WhatIfResult | null {
   if (candles.length === 0) return null;
   const sorted = [...candles].sort((a, b) => a.time - b.time);
   const buy = pickCandleAt(sorted, input.buyDate);
   // No sell date → value against the latest candle in the series.
-  const sell = input.sellDate
-    ? pickCandleAt(sorted, input.sellDate)
-    : sorted[sorted.length - 1]!;
+  const sell = input.sellDate ? pickCandleAt(sorted, input.sellDate) : sorted[sorted.length - 1]!;
   if (!buy || !sell) return null;
   const amount = new Decimal(input.buyAmount);
   if (amount.lte(0)) return null;

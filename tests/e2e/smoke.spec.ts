@@ -26,7 +26,10 @@ test.describe("dashboard", () => {
 
   test("New trade CTA navigates to the form", async ({ page }) => {
     await page.goto("/dashboard");
-    await page.getByRole("link", { name: /new trade/i }).first().click();
+    await page
+      .getByRole("link", { name: /new trade/i })
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/trades\/new/);
     await expect(page.getByRole("heading", { name: /new trade/i })).toBeVisible();
   });

@@ -75,13 +75,9 @@ export async function recomputePosition(tx: Tx, positionId: string): Promise<voi
   const openLegs = position.trades.filter((t) => t.status === "OPEN");
   const closedLegs = position.trades.filter((t) => t.status === "CLOSED");
 
-  const totalQty = openLegs.reduce(
-    (acc, t) => acc.plus(t.quantity.toString()),
-    new Decimal(0),
-  );
+  const totalQty = openLegs.reduce((acc, t) => acc.plus(t.quantity.toString()), new Decimal(0));
   const totalCost = openLegs.reduce(
-    (acc, t) =>
-      acc.plus(new Decimal(t.entryPrice.toString()).times(t.quantity.toString())),
+    (acc, t) => acc.plus(new Decimal(t.entryPrice.toString()).times(t.quantity.toString())),
     new Decimal(0),
   );
   const avgCost = totalQty.gt(0) ? totalCost.dividedBy(totalQty) : new Decimal(0);

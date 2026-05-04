@@ -24,9 +24,10 @@ export async function POST(request: Request) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
-  const body = (await request.json().catch(() => null)) as
-    | { email?: string; password?: string }
-    | null;
+  const body = (await request.json().catch(() => null)) as {
+    email?: string;
+    password?: string;
+  } | null;
   if (!body?.email || !body?.password) {
     return NextResponse.json({ error: "email + password required" }, { status: 400 });
   }
@@ -76,7 +77,10 @@ export async function POST(request: Request) {
     `[test-login] signed in as ${signInData.user?.email}, post-getUser=${getUserData.user?.email ?? "null"} err=${getUserErr?.message ?? "none"} cookieCount=${response.cookies.getAll().length}`,
   );
   console.log(
-    `[test-login] response cookies: ${response.cookies.getAll().map((c) => `${c.name}(len=${c.value.length})`).join(", ")}`,
+    `[test-login] response cookies: ${response.cookies
+      .getAll()
+      .map((c) => `${c.name}(len=${c.value.length})`)
+      .join(", ")}`,
   );
 
   return response;

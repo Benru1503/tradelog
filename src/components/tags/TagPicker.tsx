@@ -13,9 +13,7 @@ interface Props {
 // Multi-select chip picker. Selected tag IDs submit as repeated `tags` form
 // fields — the trades action reads them with formData.getAll("tags").
 export function TagPicker({ tags, defaultSelectedIds = [] }: Props) {
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(defaultSelectedIds),
-  );
+  const [selected, setSelected] = useState<Set<string>>(new Set(defaultSelectedIds));
 
   function toggle(id: string) {
     setSelected((prev) => {

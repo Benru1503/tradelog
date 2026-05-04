@@ -15,10 +15,7 @@ const DEFAULT_TTL_MS = 15 * 60 * 1000;
 // crypto and forex (CoinGecko coin id, Finnhub OANDA pair). Stocks quote
 // against the bare ticker.
 function lookupKeyFor(symbol: AssetSymbol): string {
-  if (
-    (symbol.assetType === "CRYPTO" || symbol.assetType === "FOREX") &&
-    symbol.exchange
-  ) {
+  if ((symbol.assetType === "CRYPTO" || symbol.assetType === "FOREX") && symbol.exchange) {
     return symbol.exchange;
   }
   return symbol.symbol;
@@ -44,10 +41,7 @@ export async function refreshAssetPrice(symbol: AssetSymbol) {
   return quote;
 }
 
-export async function getCachedPrice(
-  symbol: AssetSymbol,
-  ttlMs: number = DEFAULT_TTL_MS,
-) {
+export async function getCachedPrice(symbol: AssetSymbol, ttlMs: number = DEFAULT_TTL_MS) {
   const existing = await prisma.assetPrice.findUnique({
     where: { symbolId: symbol.id },
   });
@@ -62,14 +56,9 @@ export async function getCachedPrice(
   return prisma.assetPrice.findUnique({ where: { symbolId: symbol.id } });
 }
 
-export async function getCachedPrices(
-  symbols: AssetSymbol[],
-  ttlMs?: number,
-) {
+export async function getCachedPrices(symbols: AssetSymbol[], ttlMs?: number) {
   const entries = await Promise.all(
-    symbols.map(
-      async (s) => [s.id, await getCachedPrice(s, ttlMs)] as const,
-    ),
+    symbols.map(async (s) => [s.id, await getCachedPrice(s, ttlMs)] as const),
   );
   return new Map(entries);
 }

@@ -75,8 +75,16 @@ export default async function SettingsPage() {
           <CardTitle>Legal</CardTitle>
         </CardHeader>
         <ul className="text-sm space-y-1">
-          <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
-          <li><Link href="/terms" className="hover:underline">Terms of Service</Link></li>
+          <li>
+            <Link href="/privacy" className="hover:underline">
+              Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link href="/terms" className="hover:underline">
+              Terms of Service
+            </Link>
+          </li>
         </ul>
       </Card>
 

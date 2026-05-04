@@ -27,14 +27,8 @@ export interface Quote {
 }
 
 export interface MarketDataProvider {
-  searchSymbols(
-    query: string,
-    assetType?: AssetType,
-  ): Promise<SymbolSearchResult[]>;
-  getQuote(
-    providerSymbol: string,
-    assetType: AssetType,
-  ): Promise<Quote | null>;
+  searchSymbols(query: string, assetType?: AssetType): Promise<SymbolSearchResult[]>;
+  getQuote(providerSymbol: string, assetType: AssetType): Promise<Quote | null>;
 }
 
 const router: MarketDataProvider = {

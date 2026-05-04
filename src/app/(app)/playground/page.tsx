@@ -4,10 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PlaygroundTabs } from "@/components/playground/PlaygroundTabs";
-import {
-  SnapshotsList,
-  type SnapshotRow,
-} from "@/components/playground/SnapshotsList";
+import { SnapshotsList, type SnapshotRow } from "@/components/playground/SnapshotsList";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface WhatIfParamsJson {

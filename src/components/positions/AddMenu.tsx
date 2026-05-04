@@ -99,7 +99,9 @@ function MenuButton({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className={cn("flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-bg-elevated text-left")}
+      className={cn(
+        "flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-bg-elevated text-left",
+      )}
     >
       {icon}
       {label}

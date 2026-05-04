@@ -68,9 +68,7 @@ export default async function SharedPage() {
                 </div>
 
                 {t.notes && (
-                  <p className="mt-2 text-sm text-fg-muted whitespace-pre-wrap">
-                    {t.notes}
-                  </p>
+                  <p className="mt-2 text-sm text-fg-muted whitespace-pre-wrap">{t.notes}</p>
                 )}
               </li>
             );

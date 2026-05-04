@@ -28,14 +28,10 @@ export async function createWatchItem(formData: FormData): Promise<WatchlistResu
   }
 
   const targetPriceVal =
-    parsed.data.targetPrice && parsed.data.targetPrice !== ""
-      ? parsed.data.targetPrice
-      : null;
+    parsed.data.targetPrice && parsed.data.targetPrice !== "" ? parsed.data.targetPrice : null;
   // A direction without a price can't alert anything, so drop it. Validator
   // already enforces the reverse (price without direction is rejected upstream).
-  const targetDirectionVal = targetPriceVal
-    ? (parsed.data.targetDirection ?? null)
-    : null;
+  const targetDirectionVal = targetPriceVal ? (parsed.data.targetDirection ?? null) : null;
 
   try {
     await prisma.watchItem.create({

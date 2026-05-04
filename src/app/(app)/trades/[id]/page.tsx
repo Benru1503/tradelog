@@ -10,7 +10,14 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { DirectionBadge } from "@/components/ui/DirectionBadge";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { TagChips } from "@/components/tags/TagPicker";
-import { cn, formatCurrency, formatDateTime, formatNumber, formatPercent, pnlColorClass } from "@/lib/utils";
+import {
+  cn,
+  formatCurrency,
+  formatDateTime,
+  formatNumber,
+  formatPercent,
+  pnlColorClass,
+} from "@/lib/utils";
 import { DeleteTradeButton } from "@/components/trades/DeleteTradeButton";
 import type { ChartMark } from "@/components/trades/TradeChart";
 
@@ -50,10 +57,7 @@ export default async function TradeDetailPage({ params }: { params: { id: string
       },
     },
   });
-  const dividendTotal = dividends.reduce(
-    (sum, d) => sum + Number(d.amount.toString()),
-    0,
-  );
+  const dividendTotal = dividends.reduce((sum, d) => sum + Number(d.amount.toString()), 0);
 
   const trades_tags = trade.tags.map((tt) => tt.tag);
 
@@ -67,9 +71,7 @@ export default async function TradeDetailPage({ params }: { params: { id: string
   const windowEnd = new Date(
     (trade.exitDate ?? new Date()).getTime() + (trade.exitDate ? 7 * DAY_MS : 0),
   );
-  const candles = symbol
-    ? await getCandles(symbol, { from: windowStart, to: windowEnd })
-    : null;
+  const candles = symbol ? await getCandles(symbol, { from: windowStart, to: windowEnd }) : null;
 
   const marks: ChartMark[] = [
     {
@@ -142,13 +144,17 @@ export default async function TradeDetailPage({ params }: { params: { id: string
         </Card>
         <Card>
           <div className="text-xs text-fg-muted">Return</div>
-          <div className={cn("text-xl font-semibold mt-1 font-mono", pnlColorClass(trade.pnlPercent))}>
+          <div
+            className={cn("text-xl font-semibold mt-1 font-mono", pnlColorClass(trade.pnlPercent))}
+          >
             {trade.pnlPercent ? formatPercent(trade.pnlPercent, { signed: true }) : "—"}
           </div>
         </Card>
         <Card>
           <div className="text-xs text-fg-muted">Quantity</div>
-          <div className="text-xl font-semibold mt-1 font-mono">{formatNumber(trade.quantity, 4)}</div>
+          <div className="text-xl font-semibold mt-1 font-mono">
+            {formatNumber(trade.quantity, 4)}
+          </div>
         </Card>
         <Card>
           <div className="text-xs text-fg-muted">Fees</div>
@@ -189,7 +195,9 @@ export default async function TradeDetailPage({ params }: { params: { id: string
           </div>
           <div className="flex justify-between border-b border-border pb-2">
             <dt className="text-fg-muted">Exit price</dt>
-            <dd className="font-mono">{trade.exitPrice ? formatNumber(trade.exitPrice, 4) : "—"}</dd>
+            <dd className="font-mono">
+              {trade.exitPrice ? formatNumber(trade.exitPrice, 4) : "—"}
+            </dd>
           </div>
           <div className="flex justify-between border-b border-border pb-2">
             <dt className="text-fg-muted">Entry date</dt>

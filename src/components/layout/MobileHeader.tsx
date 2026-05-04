@@ -42,10 +42,7 @@ export function MobileHeader() {
                   : "text-fg-muted hover:text-fg",
               )}
             >
-              <Icon
-                size={14}
-                className={active ? "text-accent" : "text-fg-subtle"}
-              />
+              <Icon size={14} className={active ? "text-accent" : "text-fg-subtle"} />
               {item.label}
             </Link>
           );

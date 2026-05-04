@@ -41,10 +41,7 @@ export default async function AnalyticsPage() {
   if (positions.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Analytics"
-          subtitle="Sector breakdown and allocation drift"
-        />
+        <PageHeader title="Analytics" subtitle="Sector breakdown and allocation drift" />
         <EmptyState
           icon={<BarChart3 size={32} />}
           title="No open positions yet"
@@ -69,9 +66,7 @@ export default async function AnalyticsPage() {
   });
   await Promise.all([enrichStockSectors(symbols), enrichStockYields(symbols)]);
 
-  const symbolMap = new Map(
-    symbols.map((s) => [`${s.symbol}:${s.assetType}`, s] as const),
-  );
+  const symbolMap = new Map(symbols.map((s) => [`${s.symbol}:${s.assetType}`, s] as const));
 
   const tiles: HeatmapTile[] = [];
   const allocSlices: Array<{ asset: string; value: number; pct: number }> = [];
@@ -136,10 +131,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Analytics"
-        subtitle="Sector breakdown and allocation"
-      />
+      <PageHeader title="Analytics" subtitle="Sector breakdown and allocation" />
 
       <Card>
         <CardHeader>
@@ -152,9 +144,8 @@ export default async function AnalyticsPage() {
         </CardHeader>
         {livePriceCount === 0 && (
           <div className="mb-3 rounded-md border border-border/60 bg-bg-elevated/40 px-3 py-2 text-xs text-fg-subtle">
-            No live prices yet — tiles are sized by cost basis and colored
-            neutral. Add a Finnhub key (stocks/forex) and watch the colors
-            populate as quotes flow.
+            No live prices yet — tiles are sized by cost basis and colored neutral. Add a Finnhub
+            key (stocks/forex) and watch the colors populate as quotes flow.
           </div>
         )}
         <SectorHeatmap tiles={tiles} />
@@ -204,9 +195,8 @@ export default async function AnalyticsPage() {
         </CardHeader>
         {dividendRows.length === 0 ? (
           <p className="text-sm text-fg-muted">
-            No dividend yields cached yet. Yields are pulled from Finnhub the
-            first time you load this page after holding a stock — refresh in a
-            moment if Finnhub was rate-limited.
+            No dividend yields cached yet. Yields are pulled from Finnhub the first time you load
+            this page after holding a stock — refresh in a moment if Finnhub was rate-limited.
           </p>
         ) : (
           <>
@@ -214,8 +204,8 @@ export default async function AnalyticsPage() {
               {formatCurrency(projectedAnnualDividend)}
             </div>
             <p className="text-xs text-fg-subtle mb-4">
-              ≈ {formatCurrency(projectedAnnualDividend / 12)} per month at
-              current prices and yields.
+              ≈ {formatCurrency(projectedAnnualDividend / 12)} per month at current prices and
+              yields.
             </p>
             <ul className="space-y-2">
               {dividendRows.map((d) => (
@@ -243,8 +233,8 @@ export default async function AnalyticsPage() {
       </Card>
 
       <p className="text-[11px] text-fg-subtle">
-        30-day allocation drift coming once we start snapshotting daily
-        position values — needs a scheduled job we haven&apos;t built yet.
+        30-day allocation drift coming once we start snapshotting daily position values — needs a
+        scheduled job we haven&apos;t built yet.
       </p>
     </div>
   );

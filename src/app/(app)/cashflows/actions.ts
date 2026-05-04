@@ -29,8 +29,7 @@ export async function createCashFlow(formData: FormData): Promise<CashFlowResult
   }
 
   // Only dividends carry an asset; drop anything sent on the other types.
-  const assetSymbol =
-    parsed.data.type === "DIVIDEND" ? parsed.data.assetSymbol : null;
+  const assetSymbol = parsed.data.type === "DIVIDEND" ? parsed.data.assetSymbol : null;
 
   await prisma.cashFlow.create({
     data: {

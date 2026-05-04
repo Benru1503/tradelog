@@ -11,12 +11,7 @@
 //   await prisma.simSnapshot.deleteMany({ where: { userId } });
 //   // tags + watchitems are upserted, delete by name if you want them gone
 
-import {
-  PrismaClient,
-  type AssetType,
-  type Direction,
-  type CashFlowType,
-} from "@prisma/client";
+import { PrismaClient, type AssetType, type Direction, type CashFlowType } from "@prisma/client";
 import Decimal from "decimal.js";
 
 const prisma = new PrismaClient();
@@ -43,20 +38,160 @@ interface SymbolDef {
 }
 
 const SYMBOLS: SymbolDef[] = [
-  { symbol: "NVDA", name: "NVIDIA Corp", assetType: "STOCK", exchange: "NASDAQ", sector: "Technology", industry: "Semiconductors", dividendYield: "0.0003", price: 542.10, changePct: 1.85 },
-  { symbol: "AAPL", name: "Apple Inc", assetType: "STOCK", exchange: "NASDAQ", sector: "Technology", industry: "Consumer Electronics", dividendYield: "0.0048", price: 218.40, changePct: -0.42 },
-  { symbol: "MSFT", name: "Microsoft Corp", assetType: "STOCK", exchange: "NASDAQ", sector: "Technology", industry: "Software", dividendYield: "0.0072", price: 428.90, changePct: 0.55 },
-  { symbol: "AMD", name: "Advanced Micro Devices Inc", assetType: "STOCK", exchange: "NASDAQ", sector: "Technology", industry: "Semiconductors", dividendYield: null, price: 122.30, changePct: -2.10 },
-  { symbol: "GOOGL", name: "Alphabet Inc", assetType: "STOCK", exchange: "NASDAQ", sector: "Communication Services", industry: "Internet Content & Information", dividendYield: "0.0040", price: 178.65, changePct: 0.95 },
-  { symbol: "NFLX", name: "Netflix Inc", assetType: "STOCK", exchange: "NASDAQ", sector: "Communication Services", industry: "Entertainment", dividendYield: null, price: 612.40, changePct: -1.30 },
-  { symbol: "TSLA", name: "Tesla Inc", assetType: "STOCK", exchange: "NASDAQ", sector: "Consumer Cyclical", industry: "Auto Manufacturers", dividendYield: null, price: 264.80, changePct: 3.40 },
-  { symbol: "JPM", name: "JPMorgan Chase & Co", assetType: "STOCK", exchange: "NYSE", sector: "Financial Services", industry: "Banks", dividendYield: "0.0245", price: 215.50, changePct: 0.20 },
-  { symbol: "LLY", name: "Eli Lilly & Co", assetType: "STOCK", exchange: "NYSE", sector: "Healthcare", industry: "Drug Manufacturers", dividendYield: "0.0061", price: 824.10, changePct: 1.05 },
-  { symbol: "XOM", name: "Exxon Mobil Corp", assetType: "STOCK", exchange: "NYSE", sector: "Energy", industry: "Oil & Gas Integrated", dividendYield: "0.0331", price: 113.70, changePct: -0.85 },
-  { symbol: "BTC", name: "Bitcoin", assetType: "CRYPTO", exchange: "bitcoin", sector: null, industry: null, dividendYield: null, price: 92450.00, changePct: 2.10 },
-  { symbol: "ETH", name: "Ethereum", assetType: "CRYPTO", exchange: "ethereum", sector: null, industry: null, dividendYield: null, price: 3185.20, changePct: 0.65 },
-  { symbol: "SOL", name: "Solana", assetType: "CRYPTO", exchange: "solana", sector: null, industry: null, dividendYield: null, price: 158.90, changePct: -3.40 },
-  { symbol: "EUR/USD", name: "Euro / US Dollar", assetType: "FOREX", exchange: "OANDA:EUR_USD", sector: null, industry: null, dividendYield: null, price: 1.0875, changePct: 0.12 },
+  {
+    symbol: "NVDA",
+    name: "NVIDIA Corp",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Technology",
+    industry: "Semiconductors",
+    dividendYield: "0.0003",
+    price: 542.1,
+    changePct: 1.85,
+  },
+  {
+    symbol: "AAPL",
+    name: "Apple Inc",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Technology",
+    industry: "Consumer Electronics",
+    dividendYield: "0.0048",
+    price: 218.4,
+    changePct: -0.42,
+  },
+  {
+    symbol: "MSFT",
+    name: "Microsoft Corp",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Technology",
+    industry: "Software",
+    dividendYield: "0.0072",
+    price: 428.9,
+    changePct: 0.55,
+  },
+  {
+    symbol: "AMD",
+    name: "Advanced Micro Devices Inc",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Technology",
+    industry: "Semiconductors",
+    dividendYield: null,
+    price: 122.3,
+    changePct: -2.1,
+  },
+  {
+    symbol: "GOOGL",
+    name: "Alphabet Inc",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Communication Services",
+    industry: "Internet Content & Information",
+    dividendYield: "0.0040",
+    price: 178.65,
+    changePct: 0.95,
+  },
+  {
+    symbol: "NFLX",
+    name: "Netflix Inc",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Communication Services",
+    industry: "Entertainment",
+    dividendYield: null,
+    price: 612.4,
+    changePct: -1.3,
+  },
+  {
+    symbol: "TSLA",
+    name: "Tesla Inc",
+    assetType: "STOCK",
+    exchange: "NASDAQ",
+    sector: "Consumer Cyclical",
+    industry: "Auto Manufacturers",
+    dividendYield: null,
+    price: 264.8,
+    changePct: 3.4,
+  },
+  {
+    symbol: "JPM",
+    name: "JPMorgan Chase & Co",
+    assetType: "STOCK",
+    exchange: "NYSE",
+    sector: "Financial Services",
+    industry: "Banks",
+    dividendYield: "0.0245",
+    price: 215.5,
+    changePct: 0.2,
+  },
+  {
+    symbol: "LLY",
+    name: "Eli Lilly & Co",
+    assetType: "STOCK",
+    exchange: "NYSE",
+    sector: "Healthcare",
+    industry: "Drug Manufacturers",
+    dividendYield: "0.0061",
+    price: 824.1,
+    changePct: 1.05,
+  },
+  {
+    symbol: "XOM",
+    name: "Exxon Mobil Corp",
+    assetType: "STOCK",
+    exchange: "NYSE",
+    sector: "Energy",
+    industry: "Oil & Gas Integrated",
+    dividendYield: "0.0331",
+    price: 113.7,
+    changePct: -0.85,
+  },
+  {
+    symbol: "BTC",
+    name: "Bitcoin",
+    assetType: "CRYPTO",
+    exchange: "bitcoin",
+    sector: null,
+    industry: null,
+    dividendYield: null,
+    price: 92450.0,
+    changePct: 2.1,
+  },
+  {
+    symbol: "ETH",
+    name: "Ethereum",
+    assetType: "CRYPTO",
+    exchange: "ethereum",
+    sector: null,
+    industry: null,
+    dividendYield: null,
+    price: 3185.2,
+    changePct: 0.65,
+  },
+  {
+    symbol: "SOL",
+    name: "Solana",
+    assetType: "CRYPTO",
+    exchange: "solana",
+    sector: null,
+    industry: null,
+    dividendYield: null,
+    price: 158.9,
+    changePct: -3.4,
+  },
+  {
+    symbol: "EUR/USD",
+    name: "Euro / US Dollar",
+    assetType: "FOREX",
+    exchange: "OANDA:EUR_USD",
+    sector: null,
+    industry: null,
+    dividendYield: null,
+    price: 1.0875,
+    changePct: 0.12,
+  },
 ];
 
 interface TradeDef {
@@ -76,25 +211,206 @@ interface TradeDef {
 
 const TRADES: TradeDef[] = [
   // Closed winners
-  { asset: "NVDA", assetType: "STOCK", direction: "LONG", entryPrice: 475.00, exitPrice: 528.50, quantity: 25, fees: 2.50, daysAgoOpen: 75, daysAgoClose: 52, notes: "[demo] Breakout above 470 with strong volume. Held through earnings.", tagNames: ["breakout", "earnings"] },
-  { asset: "AAPL", assetType: "STOCK", direction: "LONG", entryPrice: 184.20, exitPrice: 210.40, quantity: 50, fees: 1.80, daysAgoOpen: 88, daysAgoClose: 62, notes: "[demo] Pullback to 200 EMA. Trim at +14%.", isShared: true, tagNames: ["swing"] },
-  { asset: "BTC", assetType: "CRYPTO", direction: "LONG", entryPrice: 61200.00, exitPrice: 78900.00, quantity: 0.15, fees: 12.00, daysAgoOpen: 65, daysAgoClose: 18, notes: "[demo] Halving thesis playing out. Sized small.", tagNames: ["macro", "crypto"] },
-  { asset: "MSFT", assetType: "STOCK", direction: "LONG", entryPrice: 398.00, exitPrice: 415.20, quantity: 20, fees: 1.50, daysAgoOpen: 70, daysAgoClose: 50, notes: "[demo] Steady accumulation, took the small win.", tagNames: ["swing"] },
-  { asset: "EUR/USD", assetType: "FOREX", direction: "LONG", entryPrice: 1.0712, exitPrice: 1.0888, quantity: 10000, fees: 0.50, daysAgoOpen: 40, daysAgoClose: 22, notes: "[demo] ECB pause priced in.", tagNames: ["macro"] },
+  {
+    asset: "NVDA",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 475.0,
+    exitPrice: 528.5,
+    quantity: 25,
+    fees: 2.5,
+    daysAgoOpen: 75,
+    daysAgoClose: 52,
+    notes: "[demo] Breakout above 470 with strong volume. Held through earnings.",
+    tagNames: ["breakout", "earnings"],
+  },
+  {
+    asset: "AAPL",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 184.2,
+    exitPrice: 210.4,
+    quantity: 50,
+    fees: 1.8,
+    daysAgoOpen: 88,
+    daysAgoClose: 62,
+    notes: "[demo] Pullback to 200 EMA. Trim at +14%.",
+    isShared: true,
+    tagNames: ["swing"],
+  },
+  {
+    asset: "BTC",
+    assetType: "CRYPTO",
+    direction: "LONG",
+    entryPrice: 61200.0,
+    exitPrice: 78900.0,
+    quantity: 0.15,
+    fees: 12.0,
+    daysAgoOpen: 65,
+    daysAgoClose: 18,
+    notes: "[demo] Halving thesis playing out. Sized small.",
+    tagNames: ["macro", "crypto"],
+  },
+  {
+    asset: "MSFT",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 398.0,
+    exitPrice: 415.2,
+    quantity: 20,
+    fees: 1.5,
+    daysAgoOpen: 70,
+    daysAgoClose: 50,
+    notes: "[demo] Steady accumulation, took the small win.",
+    tagNames: ["swing"],
+  },
+  {
+    asset: "EUR/USD",
+    assetType: "FOREX",
+    direction: "LONG",
+    entryPrice: 1.0712,
+    exitPrice: 1.0888,
+    quantity: 10000,
+    fees: 0.5,
+    daysAgoOpen: 40,
+    daysAgoClose: 22,
+    notes: "[demo] ECB pause priced in.",
+    tagNames: ["macro"],
+  },
   // Closed shorter winner
-  { asset: "NFLX", assetType: "STOCK", direction: "SHORT", entryPrice: 645.00, exitPrice: 588.00, quantity: 10, fees: 2.00, daysAgoOpen: 35, daysAgoClose: 20, notes: "[demo] Sub-growth scare, covered at support.", tagNames: ["earnings"] },
+  {
+    asset: "NFLX",
+    assetType: "STOCK",
+    direction: "SHORT",
+    entryPrice: 645.0,
+    exitPrice: 588.0,
+    quantity: 10,
+    fees: 2.0,
+    daysAgoOpen: 35,
+    daysAgoClose: 20,
+    notes: "[demo] Sub-growth scare, covered at support.",
+    tagNames: ["earnings"],
+  },
   // Closed losers
-  { asset: "AMD", assetType: "STOCK", direction: "LONG", entryPrice: 152.30, exitPrice: 132.10, quantity: 30, fees: 1.80, daysAgoOpen: 60, daysAgoClose: 45, notes: "[demo] Failed breakout. Stop hit, moved on.", tagNames: ["stopped-out"] },
-  { asset: "SOL", assetType: "CRYPTO", direction: "LONG", entryPrice: 195.00, exitPrice: 162.00, quantity: 8, fees: 3.50, daysAgoOpen: 50, daysAgoClose: 32, notes: "[demo] Chased the breakout, paid for it.", tagNames: ["crypto", "stopped-out"] },
-  { asset: "JPM", assetType: "STOCK", direction: "LONG", entryPrice: 218.00, exitPrice: 212.50, quantity: 15, fees: 1.20, daysAgoOpen: 45, daysAgoClose: 38, notes: "[demo] Rate-cut delay, scratched the trade.", tagNames: ["swing"] },
+  {
+    asset: "AMD",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 152.3,
+    exitPrice: 132.1,
+    quantity: 30,
+    fees: 1.8,
+    daysAgoOpen: 60,
+    daysAgoClose: 45,
+    notes: "[demo] Failed breakout. Stop hit, moved on.",
+    tagNames: ["stopped-out"],
+  },
+  {
+    asset: "SOL",
+    assetType: "CRYPTO",
+    direction: "LONG",
+    entryPrice: 195.0,
+    exitPrice: 162.0,
+    quantity: 8,
+    fees: 3.5,
+    daysAgoOpen: 50,
+    daysAgoClose: 32,
+    notes: "[demo] Chased the breakout, paid for it.",
+    tagNames: ["crypto", "stopped-out"],
+  },
+  {
+    asset: "JPM",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 218.0,
+    exitPrice: 212.5,
+    quantity: 15,
+    fees: 1.2,
+    daysAgoOpen: 45,
+    daysAgoClose: 38,
+    notes: "[demo] Rate-cut delay, scratched the trade.",
+    tagNames: ["swing"],
+  },
   // Open positions — single leg
-  { asset: "TSLA", assetType: "STOCK", direction: "LONG", entryPrice: 245.00, exitPrice: null, quantity: 20, fees: 2.00, daysAgoOpen: 25, daysAgoClose: null, notes: "[demo] Robotaxi catalyst trade.", tagNames: ["catalyst"] },
-  { asset: "GOOGL", assetType: "STOCK", direction: "LONG", entryPrice: 168.40, exitPrice: null, quantity: 30, fees: 1.50, daysAgoOpen: 18, daysAgoClose: null, notes: "[demo] Core long-term holding.", tagNames: ["long-term"] },
-  { asset: "ETH", assetType: "CRYPTO", direction: "LONG", entryPrice: 2950.00, exitPrice: null, quantity: 1.5, fees: 4.50, daysAgoOpen: 30, daysAgoClose: null, notes: "[demo] ETF flows starting to pick up.", tagNames: ["crypto"] },
-  { asset: "LLY", assetType: "STOCK", direction: "LONG", entryPrice: 780.00, exitPrice: null, quantity: 5, fees: 1.20, daysAgoOpen: 12, daysAgoClose: null, notes: "[demo] GLP-1 thesis, sized small.", tagNames: ["long-term"] },
+  {
+    asset: "TSLA",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 245.0,
+    exitPrice: null,
+    quantity: 20,
+    fees: 2.0,
+    daysAgoOpen: 25,
+    daysAgoClose: null,
+    notes: "[demo] Robotaxi catalyst trade.",
+    tagNames: ["catalyst"],
+  },
+  {
+    asset: "GOOGL",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 168.4,
+    exitPrice: null,
+    quantity: 30,
+    fees: 1.5,
+    daysAgoOpen: 18,
+    daysAgoClose: null,
+    notes: "[demo] Core long-term holding.",
+    tagNames: ["long-term"],
+  },
+  {
+    asset: "ETH",
+    assetType: "CRYPTO",
+    direction: "LONG",
+    entryPrice: 2950.0,
+    exitPrice: null,
+    quantity: 1.5,
+    fees: 4.5,
+    daysAgoOpen: 30,
+    daysAgoClose: null,
+    notes: "[demo] ETF flows starting to pick up.",
+    tagNames: ["crypto"],
+  },
+  {
+    asset: "LLY",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 780.0,
+    exitPrice: null,
+    quantity: 5,
+    fees: 1.2,
+    daysAgoOpen: 12,
+    daysAgoClose: null,
+    notes: "[demo] GLP-1 thesis, sized small.",
+    tagNames: ["long-term"],
+  },
   // Open multi-leg position (averaging up on NVDA)
-  { asset: "NVDA", assetType: "STOCK", direction: "LONG", entryPrice: 495.00, exitPrice: null, quantity: 15, fees: 1.80, daysAgoOpen: 22, daysAgoClose: null, notes: "[demo] Re-entered post-correction.", tagNames: ["breakout"] },
-  { asset: "NVDA", assetType: "STOCK", direction: "LONG", entryPrice: 525.00, exitPrice: null, quantity: 10, fees: 1.20, daysAgoOpen: 8, daysAgoClose: null, notes: "[demo] Averaging up after reclaiming 520.", tagNames: ["breakout"] },
+  {
+    asset: "NVDA",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 495.0,
+    exitPrice: null,
+    quantity: 15,
+    fees: 1.8,
+    daysAgoOpen: 22,
+    daysAgoClose: null,
+    notes: "[demo] Re-entered post-correction.",
+    tagNames: ["breakout"],
+  },
+  {
+    asset: "NVDA",
+    assetType: "STOCK",
+    direction: "LONG",
+    entryPrice: 525.0,
+    exitPrice: null,
+    quantity: 10,
+    fees: 1.2,
+    daysAgoOpen: 8,
+    daysAgoClose: null,
+    notes: "[demo] Averaging up after reclaiming 520.",
+    tagNames: ["breakout"],
+  },
 ];
 
 interface TagDef {
@@ -123,10 +439,33 @@ const CASHFLOWS: CashFlowDef[] = [
   { type: "DEPOSIT", amount: "10000", occurredDaysAgo: 95, note: "[demo] Initial funding" },
   { type: "DEPOSIT", amount: "5000", occurredDaysAgo: 60, note: "[demo] Top-up" },
   { type: "DEPOSIT", amount: "2500", occurredDaysAgo: 28, note: "[demo] Monthly contribution" },
-  { type: "WITHDRAWAL", amount: "1500", occurredDaysAgo: 14, note: "[demo] Cash out for IRL stuff" },
-  { type: "DIVIDEND", amount: "12.50", occurredDaysAgo: 55, assetSymbol: "AAPL", note: "[demo] Quarterly dividend" },
-  { type: "DIVIDEND", amount: "18.00", occurredDaysAgo: 30, assetSymbol: "MSFT", note: "[demo] Quarterly dividend" },
-  { type: "DIVIDEND", amount: "9.20", occurredDaysAgo: 10, assetSymbol: "JPM", note: "[demo] Quarterly dividend" },
+  {
+    type: "WITHDRAWAL",
+    amount: "1500",
+    occurredDaysAgo: 14,
+    note: "[demo] Cash out for IRL stuff",
+  },
+  {
+    type: "DIVIDEND",
+    amount: "12.50",
+    occurredDaysAgo: 55,
+    assetSymbol: "AAPL",
+    note: "[demo] Quarterly dividend",
+  },
+  {
+    type: "DIVIDEND",
+    amount: "18.00",
+    occurredDaysAgo: 30,
+    assetSymbol: "MSFT",
+    note: "[demo] Quarterly dividend",
+  },
+  {
+    type: "DIVIDEND",
+    amount: "9.20",
+    occurredDaysAgo: 10,
+    assetSymbol: "JPM",
+    note: "[demo] Quarterly dividend",
+  },
   { type: "FEE_ADJUST", amount: "3.50", occurredDaysAgo: 7, note: "[demo] Wire fee adjustment" },
 ];
 
@@ -138,10 +477,34 @@ interface WatchDef {
   note: string;
 }
 const WATCH: WatchDef[] = [
-  { asset: "ARM", assetType: "STOCK", targetPrice: "120.00", targetDirection: "BUY", note: "[demo] Wait for pullback to support" },
-  { asset: "META", assetType: "STOCK", targetPrice: "550.00", targetDirection: "BUY", note: "[demo] Reload zone" },
-  { asset: "AMD", assetType: "STOCK", targetPrice: "150.00", targetDirection: "SELL", note: "[demo] Re-short on rejection" },
-  { asset: "AVAX", assetType: "CRYPTO", targetPrice: "30.00", targetDirection: "BUY", note: "[demo] Layer-1 dip buy" },
+  {
+    asset: "ARM",
+    assetType: "STOCK",
+    targetPrice: "120.00",
+    targetDirection: "BUY",
+    note: "[demo] Wait for pullback to support",
+  },
+  {
+    asset: "META",
+    assetType: "STOCK",
+    targetPrice: "550.00",
+    targetDirection: "BUY",
+    note: "[demo] Reload zone",
+  },
+  {
+    asset: "AMD",
+    assetType: "STOCK",
+    targetPrice: "150.00",
+    targetDirection: "SELL",
+    note: "[demo] Re-short on rejection",
+  },
+  {
+    asset: "AVAX",
+    assetType: "CRYPTO",
+    targetPrice: "30.00",
+    targetDirection: "BUY",
+    note: "[demo] Layer-1 dip buy",
+  },
 ];
 
 async function main() {
@@ -151,9 +514,7 @@ async function main() {
     where: { userId: USER_ID, notes: { contains: MARKER } },
   });
   if (existingDemo > 0) {
-    console.log(
-      `Found ${existingDemo} existing demo trades. Skipping to avoid duplicates.`,
-    );
+    console.log(`Found ${existingDemo} existing demo trades. Skipping to avoid duplicates.`);
     return;
   }
 
@@ -218,10 +579,7 @@ async function main() {
     let pnlPercent: string | null = null;
     if (t.exitPrice != null) {
       const sign = t.direction === "LONG" ? 1 : -1;
-      const gross = new Decimal(t.exitPrice)
-        .minus(t.entryPrice)
-        .times(t.quantity)
-        .times(sign);
+      const gross = new Decimal(t.exitPrice).minus(t.entryPrice).times(t.quantity).times(sign);
       pnl = gross.minus(t.fees).toFixed(2);
       pnlPercent = new Decimal(t.exitPrice - t.entryPrice)
         .dividedBy(t.entryPrice)
@@ -311,20 +669,12 @@ async function main() {
       });
       const openLegs = allLegs.filter((x) => x.status === "OPEN");
       const closedLegs = allLegs.filter((x) => x.status === "CLOSED");
-      const totalQty = openLegs.reduce(
-        (a, x) => a.plus(x.quantity.toString()),
-        new Decimal(0),
-      );
+      const totalQty = openLegs.reduce((a, x) => a.plus(x.quantity.toString()), new Decimal(0));
       const totalCost = openLegs.reduce(
-        (a, x) =>
-          a.plus(
-            new Decimal(x.entryPrice.toString()).times(x.quantity.toString()),
-          ),
+        (a, x) => a.plus(new Decimal(x.entryPrice.toString()).times(x.quantity.toString())),
         new Decimal(0),
       );
-      const avgCost = totalQty.gt(0)
-        ? totalCost.dividedBy(totalQty)
-        : new Decimal(0);
+      const avgCost = totalQty.gt(0) ? totalCost.dividedBy(totalQty) : new Decimal(0);
       const realizedPnl = closedLegs.reduce(
         (a, x) => a.plus(x.pnl ? x.pnl.toString() : 0),
         new Decimal(0),
@@ -337,8 +687,7 @@ async function main() {
       const latestExit =
         closedLegs.length > 0
           ? closedLegs.reduce<Date | null>(
-              (a, x) =>
-                !a || (x.exitDate && x.exitDate > a) ? (x.exitDate ?? a) : a,
+              (a, x) => (!a || (x.exitDate && x.exitDate > a) ? (x.exitDate ?? a) : a),
               null,
             )
           : null;

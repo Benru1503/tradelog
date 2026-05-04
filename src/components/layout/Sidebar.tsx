@@ -39,10 +39,7 @@ export function Sidebar({
                   return (
                     <div
                       key={item.href}
-                      className={cn(
-                        baseClass,
-                        "text-fg-subtle/70 cursor-not-allowed",
-                      )}
+                      className={cn(baseClass, "text-fg-subtle/70 cursor-not-allowed")}
                       title="Coming soon"
                     >
                       <Icon size={16} className="shrink-0" />
@@ -64,10 +61,7 @@ export function Sidebar({
                   >
                     <Icon
                       size={16}
-                      className={cn(
-                        "shrink-0",
-                        active ? "text-accent" : "text-fg-subtle",
-                      )}
+                      className={cn("shrink-0", active ? "text-accent" : "text-fg-subtle")}
                     />
                     <span>{item.label}</span>
                   </Link>
@@ -83,16 +77,12 @@ export function Sidebar({
           href="/settings"
           className={cn(
             "flex items-center gap-3 px-2 py-2 rounded-lg transition-colors",
-            pathname.startsWith("/settings")
-              ? "bg-bg-elevated"
-              : "hover:bg-bg-elevated/60",
+            pathname.startsWith("/settings") ? "bg-bg-elevated" : "hover:bg-bg-elevated/60",
           )}
         >
           <Avatar name={user.displayName ?? user.email} src={user.avatarUrl} size="md" />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium truncate">
-              {user.displayName || user.email}
-            </div>
+            <div className="text-sm font-medium truncate">{user.displayName || user.email}</div>
             <div className="text-xs text-fg-subtle flex items-center gap-1">
               <Settings size={11} />
               Settings
@@ -100,10 +90,7 @@ export function Sidebar({
           </div>
         </Link>
         <form action="/auth/signout" method="post" className="px-2">
-          <button
-            type="submit"
-            className="text-xs text-fg-subtle hover:text-fg transition-colors"
-          >
+          <button type="submit" className="text-xs text-fg-subtle hover:text-fg transition-colors">
             Sign out
           </button>
         </form>

@@ -8,7 +8,9 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-12 prose prose-invert">
-      <Link href="/" className="text-sm text-fg-muted hover:text-fg">← Home</Link>
+      <Link href="/" className="text-sm text-fg-muted hover:text-fg">
+        ← Home
+      </Link>
       <h1>Privacy Policy</h1>
       <p className="text-sm text-fg-muted">Last updated: 2026-04-27</p>
 
@@ -32,8 +34,8 @@ export default function PrivacyPage() {
           new values so the journal stays honest.
         </li>
         <li>
-          <strong>Auth cookies.</strong> Supabase sets cookies on your browser so you stay signed in.
-          Sign out from settings to clear them.
+          <strong>Auth cookies.</strong> Supabase sets cookies on your browser so you stay signed
+          in. Sign out from settings to clear them.
         </li>
         <li>
           <strong>Error and performance data.</strong> If the app crashes for you, Sentry receives a
@@ -59,7 +61,8 @@ export default function PrivacyPage() {
           and revisions from Settings. This cannot be undone.
         </li>
         <li>
-          <strong>Questions.</strong> Email the operator (whoever invited you) to ask about your data.
+          <strong>Questions.</strong> Email the operator (whoever invited you) to ask about your
+          data.
         </li>
       </ul>
 

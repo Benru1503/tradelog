@@ -3,15 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  Area,
-  Line,
-  ComposedChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, Line, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { format } from "date-fns";
 import type { AssetType } from "@prisma/client";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -21,11 +13,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { TickerAutocomplete } from "@/components/ui/TickerAutocomplete";
 import { formatCurrency, formatPercent, pnlColorClass } from "@/lib/utils";
-import {
-  runDca,
-  saveDcaSnapshot,
-  type DcaResponse,
-} from "@/app/(app)/playground/actions";
+import { runDca, saveDcaSnapshot, type DcaResponse } from "@/app/(app)/playground/actions";
 
 function defaultFromDate(): string {
   const d = new Date();
@@ -70,11 +58,7 @@ export function DcaPanel() {
   function handleSave() {
     if (!result) return;
     startSaving(async () => {
-      const res = await saveDcaSnapshot(
-        result.params,
-        result.result,
-        result.assetName,
-      );
+      const res = await saveDcaSnapshot(result.params, result.result, result.assetName);
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -120,15 +104,8 @@ export function DcaPanel() {
           </div>
           <div className="sm:col-span-2">
             <Label htmlFor="dca-asset">Asset</Label>
-            <TickerAutocomplete
-              id="dca-asset"
-              name="asset"
-              assetType={assetType}
-              required
-            />
-            {fieldError("asset") && (
-              <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>
-            )}
+            <TickerAutocomplete id="dca-asset" name="asset" assetType={assetType} required />
+            {fieldError("asset") && <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>}
           </div>
         </div>
 
@@ -165,9 +142,7 @@ export function DcaPanel() {
               max={todayISO()}
               required
             />
-            {fieldError("from") && (
-              <p className="text-xs text-loss mt-1">{fieldError("from")}</p>
-            )}
+            {fieldError("from") && <p className="text-xs text-loss mt-1">{fieldError("from")}</p>}
           </div>
           <div>
             <Label htmlFor="dca-to">To</Label>
@@ -188,9 +163,7 @@ export function DcaPanel() {
               />
               Use today
             </label>
-            {fieldError("to") && (
-              <p className="text-xs text-loss mt-1">{fieldError("to")}</p>
-            )}
+            {fieldError("to") && <p className="text-xs text-loss mt-1">{fieldError("to")}</p>}
           </div>
         </div>
 
@@ -259,11 +232,7 @@ export function DcaPanel() {
   );
 }
 
-function DcaChart({
-  series,
-}: {
-  series: { time: number; invested: number; value: number }[];
-}) {
+function DcaChart({ series }: { series: { time: number; invested: number; value: number }[] }) {
   if (series.length === 0) {
     return (
       <div className="h-72 flex items-center justify-center text-sm text-fg-subtle">
@@ -329,10 +298,7 @@ function DcaChart({
 function LegendDot({ color }: { color: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block w-2.5 h-2.5 rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
     </span>
   );
 }
@@ -350,9 +316,7 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-1">
-        {label}
-      </div>
+      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-1">{label}</div>
       <div className={`text-lg font-mono font-semibold tabular-nums ${colorClass ?? ""}`}>
         {value}
       </div>

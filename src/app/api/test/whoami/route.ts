@@ -17,9 +17,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.getUser();
   const cookieHeader = request.headers.get("cookie") ?? "";
   return NextResponse.json({
-    user: data.user
-      ? { id: data.user.id, email: data.user.email }
-      : null,
+    user: data.user ? { id: data.user.id, email: data.user.email } : null,
     error: error?.message ?? null,
     incomingCookieNames: cookieHeader
       .split(";")

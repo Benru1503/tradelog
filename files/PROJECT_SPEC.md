@@ -12,23 +12,24 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 
 ## Tech Stack
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Framework** | Next.js 14+ (App Router) | Single codebase for frontend + API, deploys to Vercel in one click |
-| **Language** | TypeScript | Type safety across the full stack |
-| **Database** | PostgreSQL via Supabase | Free tier, hosted, built-in auth + storage |
-| **ORM** | Prisma | Type-safe DB queries, easy migrations |
-| **Auth** | Supabase Auth (Google OAuth) | Google login out of the box, session management included |
-| **Charts** | Recharts + Lightweight Charts (TradingView) | Recharts for stats, Lightweight Charts for price visualization |
-| **Styling** | Tailwind CSS | Utility-first, fast iteration, easy dark theme |
-| **File Storage** | Supabase Storage | Trade screenshot uploads, tied to same backend |
-| **Hosting** | Vercel (frontend) + Supabase (DB/auth/storage) | Free tiers, zero DevOps |
+| Layer            | Technology                                     | Why                                                                |
+| ---------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
+| **Framework**    | Next.js 14+ (App Router)                       | Single codebase for frontend + API, deploys to Vercel in one click |
+| **Language**     | TypeScript                                     | Type safety across the full stack                                  |
+| **Database**     | PostgreSQL via Supabase                        | Free tier, hosted, built-in auth + storage                         |
+| **ORM**          | Prisma                                         | Type-safe DB queries, easy migrations                              |
+| **Auth**         | Supabase Auth (Google OAuth)                   | Google login out of the box, session management included           |
+| **Charts**       | Recharts + Lightweight Charts (TradingView)    | Recharts for stats, Lightweight Charts for price visualization     |
+| **Styling**      | Tailwind CSS                                   | Utility-first, fast iteration, easy dark theme                     |
+| **File Storage** | Supabase Storage                               | Trade screenshot uploads, tied to same backend                     |
+| **Hosting**      | Vercel (frontend) + Supabase (DB/auth/storage) | Free tiers, zero DevOps                                            |
 
 ---
 
 ## Data Model
 
 ### User
+
 - `id` (UUID, from Supabase Auth)
 - `email`
 - `displayName`
@@ -36,6 +37,7 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 - `createdAt`
 
 ### Trade
+
 - `id` (UUID)
 - `userId` (FK → User)
 - `asset` (e.g., "AAPL", "BTC/USDT", "EUR/USD")
@@ -56,16 +58,19 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 - `updatedAt`
 
 ### Tag
+
 - `id` (UUID)
 - `userId` (FK → User)
 - `name` (e.g., "breakout", "earnings play", "scalp")
 - `color` (hex string)
 
 ### TradeTag (join table)
+
 - `tradeId` (FK → Trade)
 - `tagId` (FK → Tag)
 
 ### TradeImage
+
 - `id` (UUID)
 - `tradeId` (FK → Trade)
 - `url` (Supabase Storage URL)
@@ -77,6 +82,7 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 ## Pages & Navigation
 
 ### Main Layout
+
 - Sidebar nav (collapsible on mobile)
 - Dark theme by default
 
@@ -123,6 +129,7 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 ## Phase Plan
 
 ### Phase 1 — MVP (Core)
+
 - [x] Project setup (Next.js, Supabase, Prisma, Tailwind)
 - [ ] Google OAuth login
 - [ ] Trade CRUD (create, read, update, delete)
@@ -131,17 +138,20 @@ TradeLog is a full-stack web app for logging and analyzing trades. It replaces s
 - [ ] Dark theme
 
 ### Phase 2 — Polish
+
 - [ ] Tags system (create, assign, filter by)
 - [ ] Calendar heatmap
 - [ ] Win rate & streak tracking
 - [ ] Screenshot upload per trade
 
 ### Phase 3 — Social
+
 - [ ] Share toggle per trade
 - [ ] Shared feed page
 - [ ] User profiles
 
 ### Phase 4 — Nice-to-Haves
+
 - [ ] CSV import (from broker exports)
 - [ ] CSV export
 - [ ] Advanced analytics (by tag, by asset type, by day of week)

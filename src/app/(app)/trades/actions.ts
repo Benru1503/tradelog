@@ -32,11 +32,15 @@ function parseFormData(formData: FormData) {
 
 function parseTagIds(formData: FormData): string[] {
   // The TagPicker submits one `tags` entry per selected tag id.
-  return formData.getAll("tags").map(String).filter((s) => s.length > 0);
+  return formData
+    .getAll("tags")
+    .map(String)
+    .filter((s) => s.length > 0);
 }
 
 function buildTradeData(input: ReturnType<typeof tradeFormSchema.parse>) {
-  const hasExit = input.exitPrice && input.exitPrice !== "" && input.exitDate && input.exitDate !== "";
+  const hasExit =
+    input.exitPrice && input.exitPrice !== "" && input.exitDate && input.exitDate !== "";
   const entryPrice = new Decimal(input.entryPrice);
   const quantity = new Decimal(input.quantity);
   const fees = new Decimal(input.fees);
@@ -126,12 +130,28 @@ type ExistingTrade = NonNullable<Awaited<ReturnType<typeof prisma.trade.findUniq
 function diffRevisions(existing: ExistingTrade, next: TradeData) {
   const dateStr = (d: Date | null | undefined) => (d ? d.toISOString() : null);
   const fields: Array<{ fieldName: string; oldValue: string | null; newValue: string | null }> = [
-    { fieldName: "entryPrice", oldValue: existing.entryPrice.toString(), newValue: next.entryPrice },
-    { fieldName: "exitPrice", oldValue: existing.exitPrice?.toString() ?? null, newValue: next.exitPrice },
+    {
+      fieldName: "entryPrice",
+      oldValue: existing.entryPrice.toString(),
+      newValue: next.entryPrice,
+    },
+    {
+      fieldName: "exitPrice",
+      oldValue: existing.exitPrice?.toString() ?? null,
+      newValue: next.exitPrice,
+    },
     { fieldName: "quantity", oldValue: existing.quantity.toString(), newValue: next.quantity },
     { fieldName: "direction", oldValue: existing.direction, newValue: next.direction },
-    { fieldName: "entryDate", oldValue: dateStr(existing.entryDate), newValue: dateStr(next.entryDate) },
-    { fieldName: "exitDate", oldValue: dateStr(existing.exitDate), newValue: dateStr(next.exitDate) },
+    {
+      fieldName: "entryDate",
+      oldValue: dateStr(existing.entryDate),
+      newValue: dateStr(next.entryDate),
+    },
+    {
+      fieldName: "exitDate",
+      oldValue: dateStr(existing.exitDate),
+      newValue: dateStr(next.exitDate),
+    },
   ];
   return fields.filter((f) => f.oldValue !== f.newValue);
 }
@@ -159,8 +179,7 @@ export async function updateTrade(id: string, formData: FormData): Promise<Actio
   // If the asset/direction changed, the trade must move to a different open
   // position (or a new one). The previous position needs a recompute too in
   // case removing this trade closes it out.
-  const assetChanged =
-    existing.asset !== data.asset || existing.direction !== data.direction;
+  const assetChanged = existing.asset !== data.asset || existing.direction !== data.direction;
 
   await prisma.$transaction(async (tx) => {
     let positionId = existing.positionId;

@@ -14,13 +14,7 @@ import { TickerAutocomplete } from "@/components/ui/TickerAutocomplete";
 import { cn } from "@/lib/utils";
 import { createWatchItem } from "@/app/(app)/watchlist/actions";
 
-export function WatchItemModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function WatchItemModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const [direction, setDirection] = useState<"BUY" | "SELL" | "">("");
   const [assetType, setAssetType] = useState<AssetType>("STOCK");

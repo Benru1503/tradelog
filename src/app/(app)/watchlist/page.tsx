@@ -5,10 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getCachedPrices } from "@/lib/marketdata/cache";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import {
-  WatchlistTable,
-  type WatchlistRow,
-} from "@/components/watchlist/WatchlistTable";
+import { WatchlistTable, type WatchlistRow } from "@/components/watchlist/WatchlistTable";
 import { AddWatchButton } from "@/components/watchlist/AddWatchButton";
 
 export default async function WatchlistPage() {
@@ -30,9 +27,7 @@ export default async function WatchlistPage() {
             })),
           },
         });
-  const symbolByKey = new Map(
-    symbols.map((s) => [`${s.symbol}:${s.assetType}`, s]),
-  );
+  const symbolByKey = new Map(symbols.map((s) => [`${s.symbol}:${s.assetType}`, s]));
   const priceById = await getCachedPrices(symbols);
 
   const rows: WatchlistRow[] = items.map((item) => {
@@ -41,9 +36,7 @@ export default async function WatchlistPage() {
     return {
       item,
       lastPrice: p ? new Decimal(p.price.toString()).toNumber() : null,
-      changePct: p?.changePct
-        ? new Decimal(p.changePct.toString()).toNumber()
-        : null,
+      changePct: p?.changePct ? new Decimal(p.changePct.toString()).toNumber() : null,
     };
   });
 

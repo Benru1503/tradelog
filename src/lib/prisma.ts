@@ -23,12 +23,11 @@ function makeClient() {
   if (debugQueries) {
     // Per-query timing — flag slow ones so we can see at a glance
     // which queries dominate a request.
-    (client as unknown as {
-      $on: (
-        event: "query",
-        cb: (e: Prisma.QueryEvent) => void,
-      ) => void;
-    }).$on("query", (e) => {
+    (
+      client as unknown as {
+        $on: (event: "query", cb: (e: Prisma.QueryEvent) => void) => void;
+      }
+    ).$on("query", (e) => {
       const slow = e.duration >= 200 ? " ⚠ SLOW" : "";
       // eslint-disable-next-line no-console
       console.log(`[prisma ${e.duration}ms]${slow} ${e.query}`);

@@ -4,7 +4,14 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import type { Trade } from "@prisma/client";
-import { cn, formatCurrency, formatDate, formatNumber, formatPercent, pnlColorClass } from "@/lib/utils";
+import {
+  cn,
+  formatCurrency,
+  formatDate,
+  formatNumber,
+  formatPercent,
+  pnlColorClass,
+} from "@/lib/utils";
 import { DirectionBadge } from "@/components/ui/DirectionBadge";
 import { StatusPill } from "@/components/ui/StatusPill";
 
@@ -69,7 +76,11 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                     >
                       {c.label}
                       {sortField === c.key ? (
-                        sortDir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+                        sortDir === "asc" ? (
+                          <ArrowUp size={12} />
+                        ) : (
+                          <ArrowDown size={12} />
+                        )
                       ) : (
                         <ArrowUpDown size={12} className="opacity-40" />
                       )}
@@ -126,7 +137,12 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                 >
                   {t.pnl ? formatCurrency(t.pnl, { signed: true }) : "—"}
                 </td>
-                <td className={cn("px-5 py-4 text-right font-mono tabular-nums", pnlColorClass(t.pnlPercent))}>
+                <td
+                  className={cn(
+                    "px-5 py-4 text-right font-mono tabular-nums",
+                    pnlColorClass(t.pnlPercent),
+                  )}
+                >
                   {t.pnlPercent ? formatPercent(t.pnlPercent, { signed: true }) : "—"}
                 </td>
                 <td className="px-5 py-4">

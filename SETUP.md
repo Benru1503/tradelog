@@ -31,11 +31,11 @@ Once it's ready, you land on the project dashboard. Note the **project ref** —
 
 Copy these three values:
 
-| Field in dashboard | Goes into `.env.local` as |
-|---|---|
-| **Project URL** (e.g., `https://abcd1234.supabase.co`) | `NEXT_PUBLIC_SUPABASE_URL` |
-| **Project API Keys → `anon` `public`** | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| **Project API Keys → `service_role` `secret`** | `SUPABASE_SERVICE_ROLE_KEY` |
+| Field in dashboard                                     | Goes into `.env.local` as       |
+| ------------------------------------------------------ | ------------------------------- |
+| **Project URL** (e.g., `https://abcd1234.supabase.co`) | `NEXT_PUBLIC_SUPABASE_URL`      |
+| **Project API Keys → `anon` `public`**                 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| **Project API Keys → `service_role` `secret`**         | `SUPABASE_SERVICE_ROLE_KEY`     |
 
 > The `service_role` key bypasses Row Level Security. **Never expose it to the browser.** It's only read in server code.
 
@@ -102,7 +102,7 @@ You only have to do this once per Google Cloud project.
 4. **Name:** `TradeLog web` (anything).
 5. **Authorized JavaScript origins** — add both:
    - `http://localhost:3000`
-   - `https://YOUR-PROJECT-REF.supabase.co` *(replace with your actual ref)*
+   - `https://YOUR-PROJECT-REF.supabase.co` _(replace with your actual ref)_
 6. **Authorized redirect URIs** — add:
    - `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`
    - You can copy the exact URL from Supabase → **Authentication → Providers → Google** (it shows the callback URL there).

@@ -64,9 +64,7 @@ export function calcPnL(input: {
   const gross = exit.minus(entry).times(qty).times(sign);
   const pnl = gross.minus(fees);
   const cost = entry.times(qty);
-  const pnlPercent = cost.isZero()
-    ? new Decimal(0)
-    : pnl.dividedBy(cost).times(100);
+  const pnlPercent = cost.isZero() ? new Decimal(0) : pnl.dividedBy(cost).times(100);
 
   return { pnl, pnlPercent };
 }

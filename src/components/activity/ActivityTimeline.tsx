@@ -117,9 +117,7 @@ function Row({ event }: { event: ActivityEvent }) {
 
   const inner = (
     <div className="flex items-center gap-4 py-2.5 px-3 rounded-lg hover:bg-bg-elevated/50 transition-colors">
-      <span className="text-xs text-fg-subtle font-mono w-14 shrink-0 tabular-nums">
-        {time}
-      </span>
+      <span className="text-xs text-fg-subtle font-mono w-14 shrink-0 tabular-nums">{time}</span>
       <Icon event={event} />
       <div className="flex-1 min-w-0">{renderBody(event)}</div>
     </div>
@@ -249,17 +247,15 @@ function renderBody(event: ActivityEvent) {
             {event.type === "WITHDRAWAL" || event.type === "FEE_ADJUST" ? "−" : "+"}
             {formatCurrency(event.amount)}
           </span>
-          {event.note && (
-            <span className="text-xs text-fg-subtle truncate">{event.note}</span>
-          )}
+          {event.note && <span className="text-xs text-fg-subtle truncate">{event.note}</span>}
         </div>
       );
     }
     case "edit":
       return (
         <div className="text-sm text-fg-muted truncate">
-          Edited <span className="font-medium text-fg">{event.asset}</span> ·
-          changed <span className="font-mono">{event.fieldName}</span>{" "}
+          Edited <span className="font-medium text-fg">{event.asset}</span> · changed{" "}
+          <span className="font-mono">{event.fieldName}</span>{" "}
           <span className="text-fg-subtle font-mono">
             {event.oldValue ?? "—"} → {event.newValue ?? "—"}
           </span>

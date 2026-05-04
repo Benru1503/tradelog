@@ -30,8 +30,7 @@ interface FinnhubQuote {
 function classifyType(t: string): AssetType | null {
   const upper = t.toUpperCase();
   if (upper.includes("FOREX")) return "FOREX";
-  if (upper.includes("STOCK") || upper.includes("ETF") || upper.includes("ADR"))
-    return "STOCK";
+  if (upper.includes("STOCK") || upper.includes("ETF") || upper.includes("ADR")) return "STOCK";
   return null;
 }
 
@@ -48,10 +47,7 @@ async function safeFetch(url: URL): Promise<Response | null> {
 }
 
 export const finnhubProvider = {
-  async searchSymbols(
-    query: string,
-    assetType?: AssetType,
-  ): Promise<SymbolSearchResult[]> {
+  async searchSymbols(query: string, assetType?: AssetType): Promise<SymbolSearchResult[]> {
     const k = apiKey();
     if (!k) return [];
     const url = new URL(`${FINNHUB_BASE}/search`);
@@ -59,9 +55,7 @@ export const finnhubProvider = {
     url.searchParams.set("token", k);
     const res = await safeFetch(url);
     if (!res) return [];
-    const data = (await res.json().catch(() => null)) as
-      | { result?: FinnhubSearchHit[] }
-      | null;
+    const data = (await res.json().catch(() => null)) as { result?: FinnhubSearchHit[] } | null;
     if (!data?.result) return [];
     const hits: SymbolSearchResult[] = [];
     for (const r of data.result) {
@@ -93,9 +87,7 @@ export const finnhubProvider = {
     url.searchParams.set("token", k);
     const res = await safeFetch(url);
     if (!res) return null;
-    const data = (await res.json().catch(() => null)) as
-      | { finnhubIndustry?: string }
-      | null;
+    const data = (await res.json().catch(() => null)) as { finnhubIndustry?: string } | null;
     const industry = data?.finnhubIndustry?.trim();
     return industry && industry.length > 0 ? industry : null;
   },
@@ -113,9 +105,9 @@ export const finnhubProvider = {
     url.searchParams.set("token", k);
     const res = await safeFetch(url);
     if (!res) return null;
-    const data = (await res.json().catch(() => null)) as
-      | { metric?: { dividendYieldIndicatedAnnual?: number | null } }
-      | null;
+    const data = (await res.json().catch(() => null)) as {
+      metric?: { dividendYieldIndicatedAnnual?: number | null };
+    } | null;
     const pct = data?.metric?.dividendYieldIndicatedAnnual;
     if (pct == null || !Number.isFinite(pct) || pct <= 0) return null;
     return pct / 100;
@@ -154,13 +146,21 @@ export const finnhubProvider = {
     url.searchParams.set("token", k);
     const res = await safeFetch(url);
     if (!res) return null;
-    const data = (await res.json().catch(() => null)) as
-      | { c?: number[]; h?: number[]; l?: number[]; o?: number[]; t?: number[]; s?: string }
-      | null;
+    const data = (await res.json().catch(() => null)) as {
+      c?: number[];
+      h?: number[];
+      l?: number[];
+      o?: number[];
+      t?: number[];
+      s?: string;
+    } | null;
     if (!data || data.s !== "ok" || !data.t?.length) return null;
     const candles: Candle[] = [];
     for (let i = 0; i < data.t.length; i++) {
-      const o = data.o?.[i], h = data.h?.[i], l = data.l?.[i], c = data.c?.[i];
+      const o = data.o?.[i],
+        h = data.h?.[i],
+        l = data.l?.[i],
+        c = data.c?.[i];
       if (o == null || h == null || l == null || c == null) continue;
       candles.push({ time: data.t[i]!, open: o, high: h, low: l, close: c });
     }

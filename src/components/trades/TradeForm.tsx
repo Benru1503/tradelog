@@ -70,7 +70,9 @@ export function TradeForm({
 
   function findMatchingOpenPosition(formData: FormData): OpenPositionLite | null {
     if (!isCreate) return null;
-    const asset = String(formData.get("asset") ?? "").trim().toUpperCase();
+    const asset = String(formData.get("asset") ?? "")
+      .trim()
+      .toUpperCase();
     const direction = String(formData.get("direction") ?? "");
     const exitPrice = String(formData.get("exitPrice") ?? "").trim();
     // Only intercept when the user is opening a NEW leg (no exit yet). If
@@ -78,11 +80,7 @@ export function TradeForm({
     // matching position silently — the averaging preview is for the moment
     // they're committing fresh capital.
     if (exitPrice !== "") return null;
-    return (
-      openPositions.find(
-        (p) => p.asset === asset && p.direction === direction,
-      ) ?? null
-    );
+    return openPositions.find((p) => p.asset === asset && p.direction === direction) ?? null;
   }
 
   async function runSubmit(formData: FormData) {
@@ -199,7 +197,9 @@ export function TradeForm({
               defaultValue={trade?.entryPrice.toString() ?? ""}
               required
             />
-            {fieldError("entryPrice") && <p className="text-xs text-loss mt-1">{fieldError("entryPrice")}</p>}
+            {fieldError("entryPrice") && (
+              <p className="text-xs text-loss mt-1">{fieldError("entryPrice")}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="quantity">Quantity</Label>
@@ -213,7 +213,9 @@ export function TradeForm({
               defaultValue={trade?.quantity.toString() ?? ""}
               required
             />
-            {fieldError("quantity") && <p className="text-xs text-loss mt-1">{fieldError("quantity")}</p>}
+            {fieldError("quantity") && (
+              <p className="text-xs text-loss mt-1">{fieldError("quantity")}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="fees">Fees</Label>
@@ -256,7 +258,9 @@ export function TradeForm({
                 placeholder="—"
                 defaultValue={trade?.exitPrice?.toString() ?? ""}
               />
-              {fieldError("exitPrice") && <p className="text-xs text-loss mt-1">{fieldError("exitPrice")}</p>}
+              {fieldError("exitPrice") && (
+                <p className="text-xs text-loss mt-1">{fieldError("exitPrice")}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="exitDate">Exit date</Label>

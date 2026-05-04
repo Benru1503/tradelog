@@ -9,12 +9,8 @@ import type { AssetSymbol } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { finnhubProvider } from "./providers/finnhub";
 
-export async function enrichStockSectors(
-  symbols: AssetSymbol[],
-): Promise<void> {
-  const missing = symbols.filter(
-    (s) => s.assetType === "STOCK" && !s.sector,
-  );
+export async function enrichStockSectors(symbols: AssetSymbol[]): Promise<void> {
+  const missing = symbols.filter((s) => s.assetType === "STOCK" && !s.sector);
   if (missing.length === 0) return;
 
   await Promise.all(

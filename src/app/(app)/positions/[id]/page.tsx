@@ -66,8 +66,7 @@ export default async function PositionDetailPage({ params, searchParams }: PageP
       position.trades[0]!.entryDate,
     );
     const latestExit = position.trades.reduce<Date | null>(
-      (acc, t) =>
-        t.exitDate && (!acc || t.exitDate > acc) ? t.exitDate : acc,
+      (acc, t) => (t.exitDate && (!acc || t.exitDate > acc) ? t.exitDate : acc),
       null,
     );
     const windowStart = new Date(earliestEntry.getTime() - 14 * DAY_MS);
@@ -122,16 +121,20 @@ export default async function PositionDetailPage({ params, searchParams }: PageP
         <StatsCard
           label="Quantity held"
           value={
-            position.status === "CLOSED" ? "Closed" : decorated.costBasis === 0 ? "—" : String(position.totalQty)
+            position.status === "CLOSED"
+              ? "Closed"
+              : decorated.costBasis === 0
+                ? "—"
+                : String(position.totalQty)
           }
-          hint={position.status === "CLOSED" ? `${position.trades.length} legs` : "Across open legs"}
+          hint={
+            position.status === "CLOSED" ? `${position.trades.length} legs` : "Across open legs"
+          }
         />
         <StatsCard
           label="Average cost"
           value={
-            new Decimal(position.totalQty.toString()).gt(0)
-              ? formatCurrency(position.avgCost)
-              : "—"
+            new Decimal(position.totalQty.toString()).gt(0) ? formatCurrency(position.avgCost) : "—"
           }
           hint="Weighted across open legs"
         />
@@ -148,10 +151,9 @@ export default async function PositionDetailPage({ params, searchParams }: PageP
           label="P&L"
           value={
             decorated.unrealizedPnl != null
-              ? formatCurrency(
-                  decorated.unrealizedPnl + Number(position.realizedPnl.toString()),
-                  { signed: true },
-                )
+              ? formatCurrency(decorated.unrealizedPnl + Number(position.realizedPnl.toString()), {
+                  signed: true,
+                })
               : formatCurrency(position.realizedPnl, { signed: true })
           }
           tone={
@@ -206,8 +208,8 @@ export default async function PositionDetailPage({ params, searchParams }: PageP
               <CardTitle>Add to position</CardTitle>
             </CardHeader>
             <p className="text-sm text-fg-muted mb-4">
-              Adding more {position.asset} to this position will show an averaging
-              preview before saving.
+              Adding more {position.asset} to this position will show an averaging preview before
+              saving.
             </p>
             <Link
               href={`/trades/new?asset=${encodeURIComponent(position.asset)}&assetType=${position.assetType}&direction=${position.direction}`}
@@ -268,9 +270,7 @@ function TabLink({ href, label, active }: { href: string; label: string; active:
       href={href}
       className={cn(
         "px-4 py-2 text-sm transition-colors -mb-px border-b-2",
-        active
-          ? "text-fg border-accent"
-          : "text-fg-muted border-transparent hover:text-fg",
+        active ? "text-fg border-accent" : "text-fg-muted border-transparent hover:text-fg",
       )}
     >
       {label}

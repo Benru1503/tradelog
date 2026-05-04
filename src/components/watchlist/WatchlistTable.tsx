@@ -101,9 +101,7 @@ export function WatchlistTable({ rows }: { rows: WatchlistRow[] }) {
                           : "text-loss",
                     )}
                   >
-                    {changePct != null
-                      ? formatPercent(changePct, { signed: true })
-                      : "—"}
+                    {changePct != null ? formatPercent(changePct, { signed: true }) : "—"}
                   </td>
                   <td className="px-5 py-4 text-right font-mono tabular-nums">
                     {target != null ? (
@@ -125,9 +123,7 @@ export function WatchlistTable({ rows }: { rows: WatchlistRow[] }) {
                           : "text-fg-muted",
                     )}
                   >
-                    {distance != null
-                      ? formatPercent(distance, { signed: true })
-                      : "—"}
+                    {distance != null ? formatPercent(distance, { signed: true }) : "—"}
                   </td>
                   <td className="px-5 py-4 text-fg-muted text-xs max-w-xs truncate">
                     {item.note ?? ""}

@@ -12,9 +12,7 @@ export function LegsList({ trades, direction }: { trades: Trade[]; direction: "L
     return <div className="py-6 text-sm text-fg-subtle">No legs yet.</div>;
   }
 
-  const sorted = [...trades].sort(
-    (a, b) => a.entryDate.getTime() - b.entryDate.getTime(),
-  );
+  const sorted = [...trades].sort((a, b) => a.entryDate.getTime() - b.entryDate.getTime());
 
   let runningQty = new Decimal(0);
   let runningCost = new Decimal(0);

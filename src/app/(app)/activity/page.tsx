@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  ActivityTimeline,
-  type ActivityEvent,
-} from "@/components/activity/ActivityTimeline";
+import { ActivityTimeline, type ActivityEvent } from "@/components/activity/ActivityTimeline";
 import { ActivityFilters } from "@/components/activity/ActivityFilters";
 
 interface PageProps {
@@ -115,10 +112,7 @@ export default async function ActivityPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Activity"
-        subtitle="Every trade, cash flow, and edit in one timeline"
-      />
+      <PageHeader title="Activity" subtitle="Every trade, cash flow, and edit in one timeline" />
       <ActivityFilters />
       <ActivityTimeline events={events.slice(0, 300)} />
     </div>

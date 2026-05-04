@@ -71,7 +71,12 @@ export function PositionsTable({ rows }: { rows: PositionRow[] }) {
                       ? "—"
                       : "—"}
                 </td>
-                <td className={cn("px-5 py-4 text-right font-mono tabular-nums", pnlColorClass(unrealizedPct ?? null))}>
+                <td
+                  className={cn(
+                    "px-5 py-4 text-right font-mono tabular-nums",
+                    pnlColorClass(unrealizedPct ?? null),
+                  )}
+                >
                   {unrealizedPct != null ? formatPercent(unrealizedPct, { signed: true }) : "—"}
                 </td>
               </tr>

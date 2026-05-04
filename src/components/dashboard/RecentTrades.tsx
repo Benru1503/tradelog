@@ -6,9 +6,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 
 export function RecentTrades({ trades }: { trades: Trade[] }) {
   if (trades.length === 0) {
-    return (
-      <div className="text-sm text-fg-subtle py-8 text-center">No trades yet.</div>
-    );
+    return <div className="text-sm text-fg-subtle py-8 text-center">No trades yet.</div>;
   }
   return (
     <ul className="divide-y divide-border">

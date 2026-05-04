@@ -46,6 +46,7 @@ _"Apply the Phase 4 migration to Supabase, then add DCA mode to /playground."_
 ### Repo state
 
 Nothing has been committed since `5f67557`. Phase 2 (~50 files), all of Phase 3, all of Phase 4 What-if mode, and **four** Prisma migrations are sitting in the working tree:
+
 - `20260427152237_hardening_phase_a/`
 - `20260429113010_phase2_positions_cashflows_watchlist/`
 - `20260503120000_phase3_cashflow_asset/`
@@ -140,6 +141,7 @@ src/
 **Phase 2 — Foundations: shipped 2026-04-29** (migration `20260429113010_phase2_positions_cashflows_watchlist` applied to Supabase). Ticker autocomplete (no live provider yet), Position abstraction with averaging-up modal, cash flows + Activity ledger, Watchlist, TWR/MWR math, Tag UI.
 
 **Phase 3 — Analytics & Visualisation: shipped 2026-05-03** (migration `20260503120000_phase3_cashflow_asset` applied to Supabase).
+
 - §3.1 ✅ In-trade price chart on `/trades/[id]` and `/positions/[id]?tab=chart` (`src/components/trades/TradeChart.tsx`, `src/lib/marketdata/candles.ts`). Crypto charts work keyless via CoinGecko; stock/forex degrade gracefully because Finnhub free tier doesn't expose `/stock/candle`.
 - §3.2 ✅ Sector heatmap on `/analytics` (`src/components/analytics/SectorHeatmap.tsx` — Recharts Treemap, click-through to position).
 - §3.3 ✅ Current-allocation donut + top weights on `/analytics`. **Deferred:** 30-day allocation drift — needs daily position snapshot job.
@@ -151,6 +153,7 @@ src/
 **Phase 4 — Playground: What-if mode shipped 2026-05-04 (migration unapplied as of end-of-session).** DCA mode still unbuilt. New: `SimSnapshot` model, `src/lib/playground.ts` (pure simulator), `src/app/(app)/playground/{page,actions}.ts`, `src/components/playground/{WhatIfPanel,SnapshotsList}.tsx`, `whatIfFormSchema` in validators. Reuses `TradeChart` + `TickerAutocomplete`; no new design primitives. See `~/.claude/plans/hidden-gathering-kite.md` for the DCA half of the spec.
 
 ### Caveats
+
 - `FINNHUB_API_KEY` is set in `.env` and verified working as of 2026-05-03. `COINGECKO_DEMO_API_KEY` is optional — crypto works keyless on free tier.
 - After adding any provider key, **kill and restart `npm run dev`** — Next.js hot-reloads source but never re-reads `.env*` files in a running process.
 - **Phase 4 migration `20260504000000_phase4_sim_snapshot` is unapplied.** `/playground` will throw on `simSnapshot.findMany` until you `npx prisma migrate deploy`.
@@ -172,6 +175,7 @@ src/
 - Do not create separate CSS files — Tailwind only
 
 <!-- session-snapshot:start -->
+
 ## Recent session snapshot
 
 _Auto-updated by the PreCompact hook. Anything between the markers is overwritten before the next compaction._
@@ -180,12 +184,14 @@ _Auto-updated by the PreCompact hook. Anything between the markers is overwritte
 - **Branch:** main
 
 **Last 10 commits:**
+
 ```
 5f67557 fix(auth): validate next param to prevent open redirect
 1d02823 Initial commit: TradeLog Phase 1 MVP
 ```
 
 **Working tree:**
+
 ```
  M .env.local.example
  M .gitignore
@@ -289,4 +295,5 @@ _Auto-updated by the PreCompact hook. Anything between the markers is overwritte
 ?? vitest.config.ts
 ?? vitest.setup.ts
 ```
+
 <!-- session-snapshot:end -->

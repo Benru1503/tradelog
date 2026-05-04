@@ -28,10 +28,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Logo asLink={false} className="text-2xl [&_span]:h-11 [&_span]:w-11 [&_svg]:h-6 [&_svg]:w-6" />
-          <p className="text-fg-muted text-sm mt-3">
-            A trading diary for you and your friends.
-          </p>
+          <Logo
+            asLink={false}
+            className="text-2xl [&_span]:h-11 [&_span]:w-11 [&_svg]:h-6 [&_svg]:w-6"
+          />
+          <p className="text-fg-muted text-sm mt-3">A trading diary for you and your friends.</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-bg-card p-6 space-y-4">

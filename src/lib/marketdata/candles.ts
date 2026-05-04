@@ -27,10 +27,7 @@ export interface CandleRange {
 // so the two files stay independent. Crypto and forex carry the provider's
 // real lookup id in `exchange`; stocks quote against the bare ticker.
 function lookupKey(symbol: AssetSymbol): string {
-  if (
-    (symbol.assetType === "CRYPTO" || symbol.assetType === "FOREX") &&
-    symbol.exchange
-  ) {
+  if ((symbol.assetType === "CRYPTO" || symbol.assetType === "FOREX") && symbol.exchange) {
     return symbol.exchange;
   }
   return symbol.symbol;

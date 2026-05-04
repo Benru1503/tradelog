@@ -38,9 +38,7 @@ export const coingeckoProvider = {
     url.searchParams.set("query", query);
     const res = await safeFetch(url);
     if (!res) return [];
-    const data = (await res.json().catch(() => null)) as
-      | { coins?: CgSearchCoin[] }
-      | null;
+    const data = (await res.json().catch(() => null)) as { coins?: CgSearchCoin[] } | null;
     if (!data?.coins) return [];
     return data.coins.slice(0, 10).map((c) => ({
       symbol: c.symbol.toUpperCase(),
@@ -60,9 +58,10 @@ export const coingeckoProvider = {
     url.searchParams.set("include_24hr_change", "true");
     const res = await safeFetch(url);
     if (!res) return null;
-    const data = (await res.json().catch(() => null)) as
-      | Record<string, { usd?: number; usd_24h_change?: number }>
-      | null;
+    const data = (await res.json().catch(() => null)) as Record<
+      string,
+      { usd?: number; usd_24h_change?: number }
+    > | null;
     const entry = data?.[coinId];
     if (!entry?.usd) return null;
     return { price: entry.usd, changePct: entry.usd_24h_change ?? null };
@@ -71,19 +70,16 @@ export const coingeckoProvider = {
   // OHLC candles for a coin. CoinGecko's /ohlc endpoint accepts a discrete
   // `days` ladder only — we snap the requested range up to the next allowed
   // bucket and then trim to the requested window client-side.
-  async getCandles(
-    coinId: string,
-    range: { from: Date; to: Date },
-  ): Promise<Candle[] | null> {
+  async getCandles(coinId: string, range: { from: Date; to: Date }): Promise<Candle[] | null> {
     const days = msToCgDays(Date.now() - range.from.getTime());
     const url = new URL(`${CG_BASE}/coins/${coinId}/ohlc`);
     url.searchParams.set("vs_currency", "usd");
     url.searchParams.set("days", String(days));
     const res = await safeFetch(url);
     if (!res) return null;
-    const data = (await res.json().catch(() => null)) as
-      | Array<[number, number, number, number, number]>
-      | null;
+    const data = (await res.json().catch(() => null)) as Array<
+      [number, number, number, number, number]
+    > | null;
     if (!Array.isArray(data) || data.length === 0) return null;
     const fromMs = range.from.getTime();
     const toMs = range.to.getTime();

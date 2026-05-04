@@ -11,11 +11,7 @@ import type { Trade, CashFlow } from "@prisma/client";
 
 // Small helpers so test setup reads close to the spec scenario rather than
 // repeating Prisma boilerplate everywhere.
-function trade(opts: {
-  id: string;
-  exitDate: Date;
-  pnl: number;
-}): Trade {
+function trade(opts: { id: string; exitDate: Date; pnl: number }): Trade {
   return {
     id: opts.id,
     userId: "u1",

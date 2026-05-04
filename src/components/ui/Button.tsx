@@ -5,8 +5,10 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-bg hover:bg-accent-hover shadow-[0_0_24px_-12px_theme(colors.accent.DEFAULT)]",
-  secondary: "bg-transparent ring-1 ring-inset ring-border text-fg hover:ring-border-strong hover:bg-bg-elevated/40",
+  primary:
+    "bg-accent text-bg hover:bg-accent-hover shadow-[0_0_24px_-12px_theme(colors.accent.DEFAULT)]",
+  secondary:
+    "bg-transparent ring-1 ring-inset ring-border text-fg hover:ring-border-strong hover:bg-bg-elevated/40",
   ghost: "text-fg-muted hover:text-fg hover:bg-bg-elevated",
   danger: "bg-loss/10 ring-1 ring-inset ring-loss/30 text-loss hover:bg-loss/20",
 };

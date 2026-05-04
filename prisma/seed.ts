@@ -47,13 +47,13 @@ async function main() {
     const direction: Direction = Math.random() > 0.3 ? "LONG" : "SHORT";
     const entryPrice = randomBetween(50, 500);
     const isClosed = i < 25;
-    const exitPrice = isClosed
-      ? entryPrice * (1 + (Math.random() - 0.45) * 0.2)
-      : null;
+    const exitPrice = isClosed ? entryPrice * (1 + (Math.random() - 0.45) * 0.2) : null;
     const quantity = Math.round(randomBetween(1, 100));
     const fees = randomBetween(0, 5);
     const entryDate = new Date(now - (30 - i) * 24 * 60 * 60 * 1000);
-    const exitDate = isClosed ? new Date(entryDate.getTime() + randomBetween(1, 5) * 86400000) : null;
+    const exitDate = isClosed
+      ? new Date(entryDate.getTime() + randomBetween(1, 5) * 86400000)
+      : null;
 
     return {
       userId: SEED_USER_ID,

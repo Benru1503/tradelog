@@ -12,11 +12,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { TickerAutocomplete } from "@/components/ui/TickerAutocomplete";
 import { formatCurrency, formatNumber, formatPercent, pnlColorClass } from "@/lib/utils";
-import {
-  runWhatIf,
-  saveWhatIfSnapshot,
-  type WhatIfResponse,
-} from "@/app/(app)/playground/actions";
+import { runWhatIf, saveWhatIfSnapshot, type WhatIfResponse } from "@/app/(app)/playground/actions";
 import type { ChartMark } from "@/components/trades/TradeChart";
 
 const TradeChart = dynamic(
@@ -67,11 +63,7 @@ export function WhatIfPanel() {
   function handleSave() {
     if (!result) return;
     startSaving(async () => {
-      const res = await saveWhatIfSnapshot(
-        result.params,
-        result.result,
-        result.assetName,
-      );
+      const res = await saveWhatIfSnapshot(result.params, result.result, result.assetName);
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -134,15 +126,8 @@ export function WhatIfPanel() {
           </div>
           <div className="sm:col-span-2">
             <Label htmlFor="wi-asset">Asset</Label>
-            <TickerAutocomplete
-              id="wi-asset"
-              name="asset"
-              assetType={assetType}
-              required
-            />
-            {fieldError("asset") && (
-              <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>
-            )}
+            <TickerAutocomplete id="wi-asset" name="asset" assetType={assetType} required />
+            {fieldError("asset") && <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>}
           </div>
         </div>
 
@@ -264,9 +249,7 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-1">
-        {label}
-      </div>
+      <div className="text-[11px] uppercase tracking-wider text-fg-subtle mb-1">{label}</div>
       <div className={`text-lg font-mono font-semibold tabular-nums ${colorClass ?? ""}`}>
         {value}
       </div>

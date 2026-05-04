@@ -53,15 +53,8 @@ export function AveragingPreviewModal({
       : null;
 
   return (
-    <Modal
-      open={open}
-      onClose={onCancel}
-      size="lg"
-      labelledBy="averaging-modal-title"
-    >
-      <ModalHeader id="averaging-modal-title">
-        Adding to {asset} position
-      </ModalHeader>
+    <Modal open={open} onClose={onCancel} size="lg" labelledBy="averaging-modal-title">
+      <ModalHeader id="averaging-modal-title">Adding to {asset} position</ModalHeader>
       <ModalBody className="space-y-6">
         <div className="grid grid-cols-3 gap-4">
           <PreviewColumn
@@ -88,10 +81,7 @@ export function AveragingPreviewModal({
 
         <div className="rounded-xl border border-border bg-bg-elevated/40 p-4 space-y-2 text-sm">
           <Stat label="Capital deployed (after)" value={formatCurrency(preview.afterCost)} />
-          <Stat
-            label="Break-even price"
-            value={formatCurrency(preview.afterAvg)}
-          />
+          <Stat label="Break-even price" value={formatCurrency(preview.afterAvg)} />
           {distancePct != null && (
             <Stat
               label="Distance to break-even"
@@ -99,7 +89,11 @@ export function AveragingPreviewModal({
                 <span
                   className={cn(
                     "font-mono tabular-nums",
-                    distancePct < 0 ? "text-profit" : distancePct > 0 ? "text-loss" : "text-fg-muted",
+                    distancePct < 0
+                      ? "text-profit"
+                      : distancePct > 0
+                        ? "text-loss"
+                        : "text-fg-muted",
                   )}
                 >
                   {distancePct > 0 ? "+" : ""}
@@ -110,8 +104,8 @@ export function AveragingPreviewModal({
           )}
           {distancePct == null && marketPrice == null && (
             <p className="text-xs text-fg-subtle pt-1">
-              Live market price not available — distance to break-even will appear
-              once the price feed is connected.
+              Live market price not available — distance to break-even will appear once the price
+              feed is connected.
             </p>
           )}
         </div>
@@ -149,10 +143,13 @@ function PreviewColumn({
         tone === "emphasis" && "border-fg/20",
       )}
     >
-      <div className="text-[11px] uppercase tracking-wider text-fg-subtle">
-        {label}
-      </div>
-      <div className={cn("text-base font-semibold mt-2 font-mono tabular-nums", tone === "accent" && "text-accent")}>
+      <div className="text-[11px] uppercase tracking-wider text-fg-subtle">{label}</div>
+      <div
+        className={cn(
+          "text-base font-semibold mt-2 font-mono tabular-nums",
+          tone === "accent" && "text-accent",
+        )}
+      >
         {primary}
       </div>
       <div className="text-xs text-fg-muted mt-1 font-mono">{secondary}</div>

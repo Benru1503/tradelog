@@ -54,6 +54,4 @@ export const NAV_SECTIONS: NavSection[] = [
 ];
 
 // Flat list for the mobile horizontal scroll — no section labels.
-export const NAV_FLAT: NavItem[] = NAV_SECTIONS.flatMap((s) =>
-  s.items.filter((i) => !i.disabled),
-);
+export const NAV_FLAT: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items.filter((i) => !i.disabled));

@@ -22,8 +22,7 @@ export function ActivityFilters() {
         const next = new URLSearchParams(params.toString());
         if (f.value === "all") next.delete("filter");
         else next.set("filter", f.value);
-        const href =
-          next.toString().length > 0 ? `${pathname}?${next.toString()}` : pathname;
+        const href = next.toString().length > 0 ? `${pathname}?${next.toString()}` : pathname;
         return (
           <Link
             key={f.value}

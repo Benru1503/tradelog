@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  pickCandleAt,
-  simulateWhatIf,
-  simulateDca,
-  xirr,
-} from "@/lib/playground";
+import { pickCandleAt, simulateWhatIf, simulateDca, xirr } from "@/lib/playground";
 import type { Candle } from "@/lib/marketdata/candles";
 
 function candle(dateISO: string, close: number): Candle {
@@ -141,9 +136,7 @@ describe("simulateDca", () => {
 
   it("price doubles after final contribution: P&L doubles invested", () => {
     // 12 monthly buys at $100, then price stays at $200 for the final point.
-    const series = dailyConstantSeries("2024-01-01", 400, (i) =>
-      i < 365 ? 100 : 200,
-    );
+    const series = dailyConstantSeries("2024-01-01", 400, (i) => (i < 365 ? 100 : 200));
     const r = simulateDca(series, {
       amount: 100,
       cadence: "MONTHLY",

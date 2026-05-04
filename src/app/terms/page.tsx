@@ -8,21 +8,25 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-12 prose prose-invert">
-      <Link href="/" className="text-sm text-fg-muted hover:text-fg">← Home</Link>
+      <Link href="/" className="text-sm text-fg-muted hover:text-fg">
+        ← Home
+      </Link>
       <h1>Terms of Service</h1>
       <p className="text-sm text-fg-muted">Last updated: 2026-04-27</p>
 
       <h2>What this is</h2>
       <p>
-        TradeLog is a trading journal built for a small group of friends. By signing in you agree
-        to the terms below. If you do not agree, do not sign in.
+        TradeLog is a trading journal built for a small group of friends. By signing in you agree to
+        the terms below. If you do not agree, do not sign in.
       </p>
 
       <h2>Acceptable use</h2>
       <ul>
         <li>Use the app to log your own trades. Do not impersonate others.</li>
-        <li>Do not attempt to access other users&apos; data, exploit security holes, or run automated
-          tools that strain the service.</li>
+        <li>
+          Do not attempt to access other users&apos; data, exploit security holes, or run automated
+          tools that strain the service.
+        </li>
         <li>Do not upload screenshots containing other people&apos;s personal data.</li>
       </ul>
 
@@ -35,18 +39,21 @@ export default function TermsPage() {
 
       <h2>No warranty</h2>
       <p>
-        The app is provided &quot;as is.&quot; We try to keep your data safe and the app available, but we
-        make no guarantees. Always keep your own backups via the export feature in Settings.
+        The app is provided &quot;as is.&quot; We try to keep your data safe and the app available,
+        but we make no guarantees. Always keep your own backups via the export feature in Settings.
       </p>
 
       <h2>Termination</h2>
       <p>
-        You can delete your account from Settings at any time. The operator can revoke access if
-        you abuse the service.
+        You can delete your account from Settings at any time. The operator can revoke access if you
+        abuse the service.
       </p>
 
       <h2>Contact</h2>
-      <p>Email whoever invited you. See the <Link href="/privacy">Privacy Policy</Link> for what data we hold.</p>
+      <p>
+        Email whoever invited you. See the <Link href="/privacy">Privacy Policy</Link> for what data
+        we hold.
+      </p>
     </main>
   );
 }
