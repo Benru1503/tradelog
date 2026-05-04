@@ -6,53 +6,38 @@ TradeLog — a full-stack trading diary/logger for a small group of friends. Log
 
 ## Handoff to next session
 
-_Last updated 2026-05-04 (end of session). **Phase 4 What-if mode is built but the migration is NOT yet applied to Supabase** — `/playground` will throw at runtime until you run `npx prisma migrate deploy`. DCA mode (the second tab in the spec) is still unbuilt._
+_Last updated 2026-05-04 (end of session). **Phase 4 is fully shipped** — both What-if and DCA modes live, migration applied, all work committed and pushed to `main`. Three commits since `5f67557`: `9d1e228` (Phase 4 + Phase 3 dividend polish), `e1ebd34` (repo-wide prettier pass), `d3cd70b` (positions-table row-click fix)._
 
 ### Where we are
 
-- Phase 4 §4.1 What-if mode is **code-complete** on disk. New `/playground` route, server actions, panel component, snapshot CRUD, and 6 new unit tests. Sidebar entry no longer "soon"-disabled.
-- **Migration `20260504000000_phase4_sim_snapshot` is on disk but UNAPPLIED.** Loading `/playground` without applying it will throw on the `simSnapshot.findMany` call. Run `npx prisma migrate deploy` once before browser-testing.
-- DCA mode is **not built**. Spec wants a second tab on `/playground` — see `~/.claude/plans/hidden-gathering-kite.md` § 4.1.
-- `npx tsc --noEmit` clean, `vitest` 32/32 pass (was 26 + 6 new for the simulator), `next lint` clean.
+- Phase 4 §4.1 **What-if + DCA both ship**. `/playground` has a tab switcher (`PlaygroundTabs.tsx`); DCA uses XIRR-based CAGR, a Recharts ComposedChart (Area for value, dashed step Line for cumulative invested), and persists snapshots without the per-candle series (reproducible from params).
+- **All four Prisma migrations are applied to Supabase** — including `20260504000000_phase4_sim_snapshot`. No pending DDL.
+- Demo data is seeded on Ben's account via `scripts/seed-ben-demo.ts` — 15 trades, 8 cashflows, 8 tags, 4 watch items, 2 sim snapshots, 14 cached AssetSymbols with sectors, 2 trade revisions. Idempotent: gated by a `[demo]` marker in `notes`. To wipe: delete trades/cashflows where notes/note `contains "[demo]"`.
+- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` 40/40 pass, `prettier --check .` clean.
+- CI is green on `main` for the build job. **The audit job is red and that's pre-existing**: 5 npm advisories (1 moderate, 4 high) all chained to Next.js — fix is `next@16.2.4`, a major-version upgrade. The workflow has `continue-on-error: true` on the audit step so it doesn't gate the run, but it does light up red in the UI and trigger failure emails.
 
-### What shipped this session (2026-05-04), in order
+### What shipped this session (2026-05-04)
 
-1. Schema: new `SimSnapshot` model + `SimKind` enum (`WHAT_IF` | `DCA`) on `prisma/schema.prisma`. `User.simSnapshots` back-relation. Migration `20260504000000_phase4_sim_snapshot/migration.sql` written by hand (additive — new table + enum, no touched columns).
-2. Pure simulator math at `src/lib/playground.ts`: `pickCandleAt()` (snap-to-nearest bar) + `simulateWhatIf()` (returns `{buyPrice, sellPrice, shares, saleValue, pnl, pnlPct}`). No Prisma, no provider — easy to test.
-3. Validator: `whatIfFormSchema` in `src/lib/validators.ts`. Cross-field rule rejects `sellDate < buyDate`; empty `sellDate` means "now."
-4. Server actions at `src/app/(app)/playground/actions.ts`: `runWhatIf` (resolves AssetSymbol via cache or fresh provider lookup → `getCandles` with ±2 day padding for weekend snapping → `simulateWhatIf`), `saveWhatIfSnapshot`, `deleteSnapshot`. JSON columns cast through `Prisma.InputJsonValue`.
-5. UI: `WhatIfPanel.tsx` (client) — TickerAutocomplete filtered by asset-type select, buy amount/date, sell date with "Use today" checkbox, result stats grid, and the existing `TradeChart` reused for entry/exit marks. `SnapshotsList.tsx` renders saved scenarios with delete buttons. Page at `src/app/(app)/playground/page.tsx` server-renders the snapshot list.
-6. Nav: `disabled: true` removed from the Playground entry in `src/components/layout/nav.ts`.
-7. Tests: `tests/unit/playground.test.ts` covers the spec's "buy at close, sell at close, P&L matches by hand" scenario plus weekend-snap, null-sellDate (latest candle), empty series, zero buy-amount.
-
-### Phase 4 status
-
-- §4.1 What-if ✅ code-complete (migration unapplied)
-- §4.1 DCA ❌ not started
-- "Sandbox" banner on the page is rendered as a subheader subtitle ("Sandbox — none of this affects your portfolio"). Spec called for a more prominent banner — fine to leave as-is unless user disagrees.
-
-### Known limits I deliberately didn't paper over
-
-- Crypto what-if works keyless via CoinGecko, but its `/ohlc` endpoint caps daily history at 365 days on free tier. Older buy dates will fail.
-- Stocks/forex what-if surfaces "Historical data unavailable. Finnhub's free tier doesn't expose historical candles for stocks/forex" — same gap that already affects `/trades/[id]` and `/positions/[id]?tab=chart`. Not a regression; documented in the error string itself.
-- The chart reuses `TradeChart` and always passes `direction: "LONG"` for the marks (what-if doesn't model shorts in v1).
+1. **DCA mode** — `simulateDca()` and `xirr()` in `src/lib/playground.ts` (bisection-based annualized rate over the contribution + final-value cash flows). New validator `dcaFormSchema`. Server actions `runDca` / `saveDcaSnapshot` in `src/app/(app)/playground/actions.ts`. UI: `DcaPanel.tsx`, `PlaygroundTabs.tsx`. Polymorphic `SnapshotRow { kind, summary, ... }` so the saved-snapshots list renders both What-if and DCA rows in one panel.
+2. **Migration applied** — ran `npx prisma migrate deploy`, all four migrations now live on Supabase.
+3. **Demo seed** — `scripts/seed-ben-demo.ts`. Run via `npx tsx scripts/seed-ben-demo.ts`. Hardcodes Ben's user UUID `40bfe2c9-661a-4f2a-921b-9e8f4b8a5144`.
+4. **Repo-wide prettier pass** — first push failed CI because `prettier --check .` ran against 81 unformatted files (mostly pre-existing). Fixed in `e1ebd34`.
+5. **PositionsTable row-click bug** — same `<tr>` + `position:relative` quirk that hit TradesTable: the `<Link className="absolute inset-0">` overlay covered the viewport and intercepted every click after the first, sending users into the last-rendered row's position (ETH). Replaced with `onClick`/`onKeyDown` JS handler in `d3cd70b`.
 
 ### Suggested first message of next session
 
-_"Apply the Phase 4 migration to Supabase, then add DCA mode to /playground."_
+_"Browser-test /playground end-to-end (try BTC for both What-if and DCA), then pick the next feature."_
 
-(After `npx prisma migrate deploy`, the existing What-if scenario is browser-testable end-to-end. DCA spec lives at `~/.claude/plans/hidden-gathering-kite.md` § 4.1 "DCA mode".)
+The What-if + DCA panels work in the abstract (40/40 tests, type/lint clean) but neither has been driven through a browser. Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`.
 
-### Repo state
+### What's left in the spec (not in any active phase)
 
-Nothing has been committed since `5f67557`. Phase 2 (~50 files), all of Phase 3, all of Phase 4 What-if mode, and **four** Prisma migrations are sitting in the working tree:
-
-- `20260427152237_hardening_phase_a/`
-- `20260429113010_phase2_positions_cashflows_watchlist/`
-- `20260503120000_phase3_cashflow_asset/`
-- `20260504000000_phase4_sim_snapshot/` ← **NOT YET APPLIED**
-
-User explicitly said "wait until after Phase 4" before committing.
+- **Phase 3 §3.3 — 30-day allocation drift.** Needs a daily position-snapshot job (cron / Vercel Scheduled Function). Deferred.
+- **Multi-currency cash flows.** Schema has `currency` already; UI/aggregation is USD-only.
+- **Watchlist alert delivery** (email / push). Visual "target hit" pill works; no notifications.
+- **Friend-only filter on `/shared`.** Spec flagged it as small QoL, not phased.
+- **Sandbox banner.** Currently a page subtitle; spec wanted a more prominent banner. Fine to leave unless user disagrees.
+- **Next.js audit upgrade** (next@14 → next@16.x). High-severity DoS / HTTP-smuggling / cache-growth advisories. Major-version bump with breaking changes — needs an isolated session.
 
 ### Don't repeat past mistakes
 
@@ -62,9 +47,10 @@ User explicitly said "wait until after Phase 4" before committing.
 - Direct DB connection (`db.jxlmdplmpykendthmjpy.supabase.co:5432`) is **IPv6-only on this project**. For migrations or `psql`, use the session pooler at `aws-1-eu-central-1.pooler.supabase.com:5432` — that's already what `DIRECT_URL` points to. Don't try to swap to the `db.*` form.
 - `requireUser` is wrapped in React `cache()`. Calling it from layout + page + actions shares a single DB roundtrip per request. **Don't undo the cache wrapper.**
 - The marketdata module is server-side only — never import `src/lib/marketdata/*` from a client component. It depends on `process.env.FINNHUB_API_KEY` that mustn't ship to the browser.
-- The trades-table row click handler is JS-based, not `<Link className="absolute inset-0">` inside the `<tr>`. **Don't "simplify" it back to the Link form** — `position:relative` on `<tr>` is ignored by some browsers, which makes the Link's containing block the viewport and breaks every click on the page.
+- **Never use `<Link className="absolute inset-0">` inside a `<tr>`** for row navigation. `position:relative` is silently ignored on `<tr>` in many browsers; the Link's containing block becomes the viewport, the overlay covers the whole page, and every click after the first lands on whichever was the last-rendered row. Hit twice already (TradesTable, PositionsTable). Use `onClick`/`onKeyDown` on the `<tr>` with `role="link"`/`tabIndex={0}` — see `TradesTable.tsx` and `PositionsTable.tsx` for the canonical pattern. Fine on `<li>`/`<div>`, only `<tr>` is the trap.
 - `Sidebar` uses `sticky top-0 h-screen` on the `<aside>` so the avatar footer stays in viewport on long pages. Don't remove unless you replace with another full-height pattern.
 - `PRISMA_DEBUG=1` is the diagnostic of choice for any future perf work — don't remove the logging branch in `src/lib/prisma.ts`.
+- **CI runs `prettier --check .` against the whole repo.** Run `npx prettier --write .` (or set up a pre-commit hook) before pushing — a partial pass will fail the build job. The audit job will probably stay red until the Next.js major upgrade, but that's `continue-on-error: true` so it doesn't gate; the build job is the real gate.
 
 ## Tech Stack
 
@@ -150,14 +136,14 @@ src/
 - §3.6 ✅ Top movers strip on `/dashboard` (`src/components/dashboard/TopMoversStrip.tsx`).
 - **Market-data router + cache + Finnhub/CoinGecko providers** at `src/lib/marketdata/`. Consumed by `/api/tickers/search`, `/watchlist`, `/positions`, `/positions/[id]`, `/trades/[id]`, and `/analytics`.
 
-**Phase 4 — Playground: What-if mode shipped 2026-05-04 (migration unapplied as of end-of-session).** DCA mode still unbuilt. New: `SimSnapshot` model, `src/lib/playground.ts` (pure simulator), `src/app/(app)/playground/{page,actions}.ts`, `src/components/playground/{WhatIfPanel,SnapshotsList}.tsx`, `whatIfFormSchema` in validators. Reuses `TradeChart` + `TickerAutocomplete`; no new design primitives. See `~/.claude/plans/hidden-gathering-kite.md` for the DCA half of the spec.
+**Phase 4 — Playground: shipped 2026-05-04 (migration applied, code on `main`).** Both What-if and DCA modes live behind a tab switcher at `/playground`. Pure simulator in `src/lib/playground.ts` (`simulateWhatIf`, `simulateDca`, `xirr`, `pickCandleAt`). Server actions in `src/app/(app)/playground/actions.ts`. UI: `WhatIfPanel.tsx`, `DcaPanel.tsx`, `PlaygroundTabs.tsx`, polymorphic `SnapshotsList.tsx`. Validators `whatIfFormSchema` + `dcaFormSchema`. DCA chart is Recharts `ComposedChart` (Area for value, dashed step Line for cumulative invested). CAGR is XIRR (bisection-based money-weighted rate), not naïve final/invested. Reuses `TradeChart` + `TickerAutocomplete`; no new design primitives. Snapshots persist totals + contributions only — the per-candle series is dropped on save (reproducible from params, would bloat the row). 14 unit tests. Browser-test pass still pending.
 
 ### Caveats
 
 - `FINNHUB_API_KEY` is set in `.env` and verified working as of 2026-05-03. `COINGECKO_DEMO_API_KEY` is optional — crypto works keyless on free tier.
 - After adding any provider key, **kill and restart `npm run dev`** — Next.js hot-reloads source but never re-reads `.env*` files in a running process.
-- **Phase 4 migration `20260504000000_phase4_sim_snapshot` is unapplied.** `/playground` will throw on `simSnapshot.findMany` until you `npx prisma migrate deploy`.
 - Dividend yields are pulled lazily from Finnhub the first time a stock appears on `/analytics` and cached on `AssetSymbol` for 7 days. If the page renders with "No dividend yields cached yet", refresh in a minute (Finnhub may have been rate-limited).
+- DCA on long ranges depends on candle availability: CoinGecko free tier caps daily history at ~365 days, so a 5-year monthly DCA on BTC will fail at the data-fetch step with "Historical data unavailable." Stocks/forex DCA fails entirely on Finnhub free tier (no `/stock/candle`).
 
 ## Market data
 
