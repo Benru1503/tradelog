@@ -1,0 +1,117 @@
+{
+  "version": "1.0.0",
+  "trainedAt": "2026-07-19T12:20:53Z",
+  "source": "yahoo v8 chart daily closes (keyless)",
+  "featureNames": [
+    "logret_1",
+    "logret_2",
+    "logret_3",
+    "logret_5",
+    "logret_10",
+    "sma_ratio_7_21",
+    "sma_ratio_21_50",
+    "close_over_sma50",
+    "rsi_14",
+    "macd_hist_norm",
+    "vol_7",
+    "vol_21",
+    "vol_ratio_7_21",
+    "dist_max_20",
+    "dist_min_20",
+    "volume_z20",
+    "dow_sin",
+    "dow_cos",
+    "is_crypto"
+  ],
+  "warmupBars": 49,
+  "horizons": {
+    "d1": {
+      "bars": 1,
+      "intercept": 0.10527884687816652,
+      "trees": 441,
+      "validAuc": 0.5407,
+      "testAuc": 0.5314,
+      "testAccuracy": 0.5169,
+      "testBaseRate": 0.5176,
+      "testRows": 2956,
+      "trainRows": 18064
+    },
+    "w1": {
+      "bars": 5,
+      "intercept": 0.24411942577850887,
+      "trees": 66,
+      "validAuc": 0.5696,
+      "testAuc": 0.5272,
+      "testAccuracy": 0.5172,
+      "testBaseRate": 0.5159,
+      "testRows": 2900,
+      "trainRows": 18064
+    }
+  },
+  "dataInfo": {
+    "assets": [
+      "BTC",
+      "ETH",
+      "AAPL",
+      "MSFT",
+      "NVDA",
+      "GOOGL",
+      "AMZN",
+      "META",
+      "TSLA",
+      "AMD",
+      "JPM",
+      "XOM",
+      "SPY",
+      "QQQ"
+    ],
+    "from": "2020-01-01",
+    "validFrom": "2025-01-01",
+    "testFrom": "2025-10-01"
+  },
+  "backtest": {
+    "threshold": 0.55,
+    "feeBps": 10,
+    "perAsset": [
+      {
+        "asset": "BTC",
+        "horizon": "d1",
+        "windowFrom": "2025-10-01",
+        "windowTo": "2026-07-17",
+        "strategyRetPct": 9.65,
+        "buyHoldRetPct": -46.14,
+        "hitRatePct": 54.76,
+        "daysInMarketPct": 29.07,
+        "trades": 38,
+        "maxDrawdownPct": -14.93,
+        "sharpe": 0.54
+      },
+      {
+        "asset": "AAPL",
+        "horizon": "d1",
+        "windowFrom": "2025-10-01",
+        "windowTo": "2026-07-16",
+        "strategyRetPct": -5.8,
+        "buyHoldRetPct": 30.46,
+        "hitRatePct": 58.49,
+        "daysInMarketPct": 26.9,
+        "trades": 28,
+        "maxDrawdownPct": -15.27,
+        "sharpe": -0.4
+      },
+      {
+        "asset": "SPY",
+        "horizon": "d1",
+        "windowFrom": "2025-10-01",
+        "windowTo": "2026-07-16",
+        "strategyRetPct": -0.07,
+        "buyHoldRetPct": 12.31,
+        "hitRatePct": 57.01,
+        "daysInMarketPct": 54.31,
+        "trades": 35,
+        "maxDrawdownPct": -6.57,
+        "sharpe": 0.04
+      }
+    ]
+  }
+}

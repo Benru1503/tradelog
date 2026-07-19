@@ -1,0 +1,12 @@
+# TradeLog ML — training + notebook dependencies.
+# Local training (ml/train.py) needs only the first four.
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+xgboost>=2.0
+
+# Notebook extras (Google Colab ships all of these preinstalled):
+matplotlib>=3.8
+tensorflow>=2.16
+# Optional — Google Trends section degrades gracefully without it:
+pytrends>=4.9
