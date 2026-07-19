@@ -6,6 +6,7 @@ import {
   computeTradingPnlSeries,
   computeAccountValueSeries,
   computeCashOnHand,
+  computeDashboardSeries,
 } from "@/lib/portfolio";
 import type { Trade, CashFlow } from "@prisma/client";
 
@@ -195,5 +196,86 @@ describe("computeCashOnHand", () => {
       occurredAt: new Date("2026-02-01"),
     });
     expect(computeCashOnHand([d, w], 1500)).toBe(2500);
+  });
+
+  it("dividends add cash; fee adjustments remove it", () => {
+    const d = flow({
+      id: "f1",
+      type: "DEPOSIT",
+      amount: 1000,
+      occurredAt: new Date("2026-01-01"),
+    });
+    const div = flow({
+      id: "f2",
+      type: "DIVIDEND",
+      amount: 50,
+      occurredAt: new Date("2026-02-01"),
+    });
+    const fee = flow({
+      id: "f3",
+      type: "FEE_ADJUST",
+      amount: 20,
+      occurredAt: new Date("2026-03-01"),
+    });
+    expect(computeCashOnHand([d, div, fee], 0)).toBe(1030);
+  });
+});
+
+describe("computeMWR — positive rate", () => {
+  it("$1000 deposited, worth $1100 a year later → ~10% annualized", () => {
+    const d = flow({
+      id: "f1",
+      type: "DEPOSIT",
+      amount: 1000,
+      occurredAt: new Date("2026-01-01"),
+    });
+    const t1 = trade({ id: "t1", exitDate: new Date("2027-01-01"), pnl: 100 });
+    const mwr = computeMWR([t1], [d]);
+    expect(mwr).toBeCloseTo(0.1, 2);
+  });
+});
+
+describe("computeDashboardSeries", () => {
+  it("emits both series at every event, with flow markers on flow points", () => {
+    const d = flow({
+      id: "f1",
+      type: "DEPOSIT",
+      amount: 1000,
+      occurredAt: new Date("2026-01-01"),
+    });
+    const t1 = trade({ id: "t1", exitDate: new Date("2026-02-01"), pnl: 200 });
+    const w = flow({
+      id: "f2",
+      type: "WITHDRAWAL",
+      amount: 500,
+      occurredAt: new Date("2026-03-01"),
+    });
+
+    const series = computeDashboardSeries([t1], [d, w]);
+    expect(series.map((p) => p.tradingPnl)).toEqual([0, 200, 200]);
+    expect(series.map((p) => p.accountValue)).toEqual([1000, 1200, 700]);
+    expect(series[0]!.flow).toEqual({ type: "DEPOSIT", amount: 1000 });
+    expect(series[1]!.flow).toBeUndefined();
+    expect(series[2]!.flow).toEqual({ type: "WITHDRAWAL", amount: -500 });
+  });
+
+  it("a flow at the same instant as a trade is applied after it", () => {
+    const at = new Date("2026-02-01");
+    const t1 = trade({ id: "t1", exitDate: at, pnl: 100 });
+    const d = flow({ id: "f1", type: "DEPOSIT", amount: 500, occurredAt: at });
+
+    const series = computeDashboardSeries([t1], [d]);
+    expect(series.map((p) => p.accountValue)).toEqual([100, 600]);
+  });
+
+  it("two different flows at the same timestamp keep their own type and amount", () => {
+    const at = new Date("2026-02-01");
+    const d = flow({ id: "f1", type: "DEPOSIT", amount: 100, occurredAt: at });
+    const w = flow({ id: "f2", type: "WITHDRAWAL", amount: 50, occurredAt: at });
+
+    const series = computeDashboardSeries([], [d, w]);
+    expect(series).toHaveLength(2);
+    expect(series[0]!.flow).toEqual({ type: "DEPOSIT", amount: 100 });
+    expect(series[1]!.flow).toEqual({ type: "WITHDRAWAL", amount: -50 });
   });
 });

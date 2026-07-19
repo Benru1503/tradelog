@@ -18,8 +18,10 @@ export type Stats = {
 
 export function computeStats(trades: Trade[]): Stats {
   const closed = trades.filter((t) => t.status === "CLOSED" && t.pnl != null);
-  const wins = closed.filter((t) => new Decimal(t.pnl!).isPositive());
-  const losses = closed.filter((t) => new Decimal(t.pnl!).isNegative());
+  // gt/lt, not isPositive/isNegative — decimal.js treats +0 as "positive",
+  // which would count a break-even trade as a winner and inflate win rate.
+  const wins = closed.filter((t) => new Decimal(t.pnl!).gt(0));
+  const losses = closed.filter((t) => new Decimal(t.pnl!).lt(0));
 
   const sum = (xs: Trade[]) => xs.reduce((acc, t) => acc.plus(t.pnl ?? 0), new Decimal(0));
 

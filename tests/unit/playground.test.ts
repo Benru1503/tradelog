@@ -201,4 +201,33 @@ describe("simulateDca", () => {
     });
     expect(r).toBeNull();
   });
+
+  it("returns null when `to` is before `from`", () => {
+    const series = dailyConstantSeries("2024-01-01", 60, () => 100);
+    const r = simulateDca(series, {
+      amount: 100,
+      cadence: "MONTHLY",
+      from: new Date("2024-02-01"),
+      to: new Date("2024-01-01"),
+    });
+    expect(r).toBeNull();
+  });
+});
+
+describe("edge behavior", () => {
+  it("xirr needs at least two cash flows", () => {
+    expect(xirr([{ time: 0, amount: -100 }])).toBeNull();
+  });
+
+  it("what-if with a buy date after the last candle snaps to the last bar (P&L 0)", () => {
+    const r = simulateWhatIf(SERIES, {
+      buyAmount: 1000,
+      buyDate: new Date("2030-01-01"),
+      sellDate: null,
+    });
+    expect(r).not.toBeNull();
+    expect(r!.buyPrice).toBe(250);
+    expect(r!.sellPrice).toBe(250);
+    expect(r!.pnl).toBe(0);
+  });
 });

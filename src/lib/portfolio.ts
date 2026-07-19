@@ -7,8 +7,7 @@ import type { Trade, CashFlow } from "@prisma/client";
 // Why this exists: the original equity curve treated trade P&L as the only
 // thing that moves the line. Once we model cash flows (deposits / withdrawals),
 // a $1k deposit would visually look indistinguishable from a $1k trading gain
-// — which is the bug TWR fixes. See spec § 3 in
-// /Users/Ben_Rubinovitz/.claude/plans/hidden-gathering-kite.md
+// — which is the bug TWR fixes. See docs/portfolio-math.md.
 // ────────────────────────────────────────────────────────────────────────────
 
 interface TimelineEvent {
@@ -18,6 +17,10 @@ interface TimelineEvent {
   // Signed cash flow. Deposits/dividends positive; withdrawals/fee_adjusts
   // negative (handled in `signedFlow` below).
   flow?: Decimal;
+  // The originating row for flow events — dashboard markers need its type.
+  // Kept on the event (not looked up by timestamp) so two flows at the same
+  // instant each keep their own identity.
+  cf?: CashFlow;
 }
 
 function signedFlow(cf: CashFlow): Decimal {
@@ -42,7 +45,7 @@ function buildTimeline(trades: Trade[], flows: CashFlow[]): TimelineEvent[] {
     }
   }
   for (const f of flows) {
-    events.push({ date: f.occurredAt, flow: signedFlow(f) });
+    events.push({ date: f.occurredAt, flow: signedFlow(f), cf: f });
   }
   // Cash flows on the same instant as a trade get applied AFTER the trade —
   // their effect (deposit) doesn't retroactively change the trade's sub-period.
@@ -188,8 +191,6 @@ export function computeDashboardSeries(trades: Trade[], flows: CashFlow[]): Dash
   const events = buildTimeline(trades, flows);
   let pnl = new Decimal(0);
   let acct = new Decimal(0);
-  const flowByDate = new Map<number, CashFlow>();
-  for (const f of flows) flowByDate.set(f.occurredAt.getTime(), f);
 
   return events.map((e) => {
     if (e.pnl) {
@@ -202,9 +203,8 @@ export function computeDashboardSeries(trades: Trade[], flows: CashFlow[]): Dash
       tradingPnl: pnl.toNumber(),
       accountValue: acct.toNumber(),
     };
-    if (e.flow) {
-      const f = flowByDate.get(e.date.getTime());
-      if (f) point.flow = { type: f.type, amount: e.flow.toNumber() };
+    if (e.flow && e.cf) {
+      point.flow = { type: e.cf.type, amount: e.flow.toNumber() };
     }
     return point;
   });
