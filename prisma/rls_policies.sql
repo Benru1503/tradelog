@@ -60,7 +60,19 @@ DROP POLICY IF EXISTS trade_revisions_owner ON trade_revisions;
 CREATE POLICY trade_revisions_owner ON trade_revisions
   FOR ALL USING ("userId" = auth.uid());
 
+-- 8. Predictions (Phase 5) — strictly owner-only.
+ALTER TABLE predictions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS predictions_owner ON predictions;
+CREATE POLICY predictions_owner ON predictions
+  FOR ALL USING ("userId" = auth.uid());
+
 -- NOTE: Server-side code uses the service-role key (bypasses RLS), so server
 -- actions must continue to enforce ownership in application logic.
 -- RLS is the second layer of defense for any client that talks to Supabase
 -- directly (e.g., signed Storage URLs, future realtime subscriptions).
+--
+-- TODO(pre-existing gap): the Phase 2-4 tables (positions, cash_flows,
+-- watch_items, sim_snapshots) never got policies here. Nothing user-facing
+-- talks to Supabase directly today, but they should be added for parity the
+-- next time this file is applied.

@@ -5,6 +5,7 @@ import {
   watchItemFormSchema,
   whatIfFormSchema,
   dcaFormSchema,
+  predictFormSchema,
 } from "@/lib/validators";
 
 const base = {
@@ -144,5 +145,31 @@ describe("dcaFormSchema", () => {
 
   it("rejects a non-positive contribution amount", () => {
     expect(dcaFormSchema.safeParse({ ...baseDca, amount: "0" }).success).toBe(false);
+  });
+});
+
+describe("predictFormSchema", () => {
+  const basePredict = { asset: "btc", assetType: "CRYPTO" as const, horizon: "D1" as const };
+
+  it("accepts a request and upper-cases the asset", () => {
+    const r = predictFormSchema.safeParse(basePredict);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.asset).toBe("BTC");
+  });
+
+  it("accepts the weekly horizon", () => {
+    expect(predictFormSchema.safeParse({ ...basePredict, horizon: "W1" }).success).toBe(true);
+  });
+
+  it("rejects an unknown horizon", () => {
+    expect(predictFormSchema.safeParse({ ...basePredict, horizon: "M1" }).success).toBe(false);
+  });
+
+  it("rejects an empty asset", () => {
+    expect(predictFormSchema.safeParse({ ...basePredict, asset: "  " }).success).toBe(false);
+  });
+
+  it("rejects an unknown asset type", () => {
+    expect(predictFormSchema.safeParse({ ...basePredict, assetType: "BOND" }).success).toBe(false);
   });
 });

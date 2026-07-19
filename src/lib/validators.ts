@@ -132,3 +132,12 @@ export const dcaFormSchema = z
     { message: "End date must be on or after start date", path: ["to"] },
   );
 export type DcaFormInput = z.infer<typeof dcaFormSchema>;
+
+// /predict — ML direction forecast. Horizon values mirror the
+// PredictionHorizon enum (D1 = next day, W1 = next week).
+export const predictFormSchema = z.object({
+  asset: z.string().trim().toUpperCase().min(1, "Required").max(40),
+  assetType,
+  horizon: z.enum(["D1", "W1"]),
+});
+export type PredictFormInput = z.infer<typeof predictFormSchema>;

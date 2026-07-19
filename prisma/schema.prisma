@@ -49,6 +49,21 @@ enum SimKind {
   DCA
 }
 
+enum PredictionHorizon {
+  D1
+  W1
+}
+
+enum PredictionDirection {
+  UP
+  DOWN
+}
+
+enum PredictionOutcome {
+  HIT
+  MISS
+}
+
 model User {
   id          String   @id @db.Uuid
   email       String   @unique
@@ -65,6 +80,7 @@ model User {
   cashFlows    CashFlow[]
   watchItems   WatchItem[]
   simSnapshots SimSnapshot[]
+  predictions  Prediction[]
 
   @@map("users")
 }
@@ -269,6 +285,36 @@ model SimSnapshot {
 
   @@index([userId, createdAt])
   @@map("sim_snapshots")
+}
+
+// One row per model run on /predict. Sandbox-only, like SimSnapshot — never
+// read by the dashboard or analytics. `pUp` is the model's probability of
+// the price closing higher after the horizon; direction is derived from it.
+// Rows resolve lazily: the first /predict page view past `resolvesAt`
+// fetches a quote, fills resolvedPrice/outcome, and stamps resolvedAt.
+model Prediction {
+  id            String              @id @default(uuid()) @db.Uuid
+  userId        String              @db.Uuid
+  symbol        String
+  assetType     AssetType
+  horizon       PredictionHorizon
+  direction     PredictionDirection
+  pUp           Decimal             @db.Decimal(6, 5)
+  priceAt       Decimal             @db.Decimal(20, 8)
+  // Close time of the last daily candle the features were computed from.
+  candleTime    DateTime
+  modelVersion  String
+  createdAt     DateTime            @default(now())
+  resolvesAt    DateTime
+  resolvedAt    DateTime?
+  resolvedPrice Decimal?            @db.Decimal(20, 8)
+  outcome       PredictionOutcome?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, resolvesAt])
+  @@map("predictions")
 }
 
 // Latest-known price per symbol. Single row per symbol, overwritten on

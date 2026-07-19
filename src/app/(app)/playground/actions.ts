@@ -14,41 +14,9 @@ import {
   type DcaResult,
   type DcaCadence,
 } from "@/lib/playground";
-import { getMarketDataProvider } from "@/lib/marketdata/client";
+import { resolveSymbol } from "@/lib/marketdata/resolve";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-// Resolve a ticker the user typed/picked into an AssetSymbol row. The
-// autocomplete usually pre-populates the row via /api/tickers/search, but a
-// user could also type a ticker manually (Enter on free-text), in which
-// case we run a fresh provider lookup and upsert the result.
-async function resolveSymbol(asset: string, assetType: AssetType) {
-  const upper = asset.toUpperCase();
-  const cached = await prisma.assetSymbol.findUnique({
-    where: { symbol_assetType: { symbol: upper, assetType } },
-  });
-  if (cached) return cached;
-  const fresh = await getMarketDataProvider().searchSymbols(upper, assetType);
-  const match =
-    fresh.find((r) => r.symbol === upper) ?? fresh.find((r) => r.assetType === assetType);
-  if (!match) return null;
-  return prisma.assetSymbol.upsert({
-    where: { symbol_assetType: { symbol: match.symbol, assetType: match.assetType } },
-    create: {
-      symbol: match.symbol,
-      name: match.name,
-      assetType: match.assetType,
-      exchange: match.exchange ?? null,
-      sector: match.sector ?? null,
-    },
-    update: {
-      name: match.name,
-      exchange: match.exchange ?? null,
-      sector: match.sector ?? null,
-      refreshedAt: new Date(),
-    },
-  });
-}
 
 export interface WhatIfParams {
   asset: string;
