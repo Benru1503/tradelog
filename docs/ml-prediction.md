@@ -88,6 +88,11 @@ From `meta.json` (also surfaced in the UI's "About this model"):
   BTC **+9.7% vs −46.1%** buy & hold (the model sat out most of the crash);
   AAPL −5.8% vs +30.5% (it kept stepping out of a rally). The edge is
   drawdown-avoidance, regime-dependent, and fee-fragile — the UI says so.
+- **Error bar:** the notebook's independent Colab retrain (same code, data
+  fetched hours later) landed _weaker_ — BTC strategy ≈ −7% (still +39 pp vs
+  buy & hold) and XGB-full below XGB-lite. The sign of the backtest flips
+  between data snapshots; both the notebook (§11) and this page treat that
+  fragility as a finding, not a footnote.
 
 ## Data conventions (pinned, easy to get wrong)
 

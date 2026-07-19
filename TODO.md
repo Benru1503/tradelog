@@ -5,8 +5,11 @@ Last updated: 2026-07-19.
 
 ## Course submission (פרויקט גמר — מסלול 2)
 
-- [ ] **Run the notebook in Colab and save the executed copy.** The repo version
-      ships without outputs; the graded copy must show them. Steps:
+- [x] **Run the notebook in Colab and save the executed copy.** ✅ Done
+      2026-07-19 — full clean run saved to `main` (`8a0d559`), all 18 code
+      cells executed, narrative cells reconciled with the actual run's
+      numbers, team credit includes Shahar. Re-run steps kept below for the
+      next retrain:
   1. Open <https://colab.research.google.com/github/Benru1503/tradelog/blob/main/ml/tradelog_prediction.ipynb>
      (same link as the badge in [ml/README.md](ml/README.md)). Sign in with Google.
   2. `Runtime → Run all` (Ctrl+F9). Click **"Run anyway"** on the
@@ -25,14 +28,14 @@ Last updated: 2026-07-19.
 - [ ] **מסמך אפיון וסיכום (PDF, ≤5 pages):** problem, architecture, models,
       results, Risks & Caveats, future work. Ready source material:
       [docs/ml-prediction.md](docs/ml-prediction.md) + notebook §11 + the
-      backtest tables. Owner: Idan/Ben.
+      backtest tables. Owner: Ben / Idan / Shahar.
 - [ ] **Demo video (3–5 min):** suggested script — `/predict` live (BTC next-day
       → result card → model card), history with a resolved HIT/MISS row, then
       the notebook's §8 backtest charts. OBS/Loom, share the link per the
       course instructions.
 - [ ] **Survey (5% of the grade, free points):**
       <https://docs.google.com/forms/d/e/1FAIpQLScoi4MJNRKAN__3Jhmul19GCh5RZLVd7PWg43VSGZD9GTyRSA/viewform>
-- [ ] **Repo visibility decision (Idan + Ben):** the repo is currently
+- [ ] **Repo visibility decision (Ben / Idan / Shahar):** the repo is currently
       **private** — graders can't open the submission link, and the Colab
       badge 404s for anyone unauthorized (Colab needs "Authorize with GitHub" + include-private-repos even for us). Either make it public before
       submission (it's secret-clean: `.env.local` gitignored, keyless data
