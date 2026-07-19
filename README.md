@@ -1,82 +1,88 @@
 # TradeLog
 
-A full-stack trading diary for stocks, crypto, and forex. Private by default with an opt-in shared feed.
+[![CI](https://github.com/Benru1503/tradelog/actions/workflows/ci.yml/badge.svg)](https://github.com/Benru1503/tradelog/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-See [`files/PROJECT_SPEC.md`](files/PROJECT_SPEC.md) for the full spec and [`CLAUDE.md`](CLAUDE.md) for conventions.
+A full-stack trading diary for a small group of friends. Log trades across **stocks, crypto, and forex**, track positions and cash flows, analyze performance with cash-aware equity curves — and stress-test ideas in a simulation playground. Private by default, with an opt-in shared feed.
 
-## Stack
+## Features
 
-Next.js 14 (App Router) · TypeScript · PostgreSQL (Supabase) · Prisma · Supabase Auth (Google OAuth) · Tailwind CSS · Recharts · Lightweight Charts
+- **Trade log** — complete round trips (entry/exit, fees, tags, screenshots, notes) with soft delete + undo and a per-field edit history.
+- **Positions** — legs on the same `(asset, direction)` group automatically; average cost, realized + unrealized P&L, averaging-up preview.
+- **Cash flows** — deposits, withdrawals, dividends, and fee adjustments feed an Activity ledger, so a deposit never masquerades as a trading gain.
+- **Analytics** — TWR/MWR returns, cash-adjusted equity curve, sector heatmap, allocation donut, projected annual dividends.
+- **Watchlist** — symbols you don't own yet, with target-price distance tracking.
+- **Playground** — what-if backtests and DCA simulations with XIRR-based CAGR. Sandboxed: never touches your real stats.
+- **Live market data** — Finnhub (stocks/forex) + CoinGecko (crypto), server-side only, cached in Postgres, graceful `—` on failure.
+- **Shared feed** — sharing is opt-in per trade; everything else is private.
 
-## Setup
+## Tech stack
 
-### 1. Install dependencies
+| Layer     | Choice                                        |
+| --------- | --------------------------------------------- |
+| Framework | Next.js 14 (App Router) + TypeScript          |
+| Database  | PostgreSQL (Supabase) via Prisma              |
+| Auth      | Supabase Auth — Google OAuth                  |
+| Styling   | Tailwind CSS (dark theme)                     |
+| Charts    | Recharts (stats) + Lightweight Charts (price) |
+| Testing   | Vitest + Testing Library, Playwright E2E      |
+| Hosting   | Vercel + Supabase                             |
+
+## Quickstart
+
+Prerequisites: **Node ≥ 20.19** (older 20.x breaks on ESM-only dependencies — check `node -v`), npm, a Supabase project. Full checklist: [docs/prerequisites.md](docs/prerequisites.md).
 
 ```bash
 npm install
+cp .env.local.example .env.local     # or copy a teammate's — see docs/running-locally.md
+npx prisma migrate deploy            # apply committed migrations (skip if joining the shared DB)
+npm run dev                          # http://localhost:3000
 ```
 
-### 2. Provision Supabase
+First time on a new machine? Follow **[docs/running-locally.md](docs/running-locally.md)** step by step. Provisioning a brand-new Supabase + Google OAuth stack from scratch: **[SETUP.md](SETUP.md)** (~20 min).
 
-Follow the full step-by-step in [`SETUP.md`](SETUP.md) — covers creating the project, getting connection strings, configuring Google OAuth in Google Cloud, wiring it into Supabase, RLS policies, and deploying to Vercel.
+> Changed anything in `.env*`? Kill and restart `npm run dev` — Next.js never re-reads env files in a running process.
 
-### 3. Configure env
+## Documentation
 
-```bash
-cp .env.local.example .env.local
-# fill in the values from step 2
-```
+| Doc                                                | What's inside                                                    |
+| -------------------------------------------------- | ---------------------------------------------------------------- |
+| [docs/prerequisites.md](docs/prerequisites.md)     | What your machine needs before anything else — start here        |
+| [docs/running-locally.md](docs/running-locally.md) | Clone → env → dev server, step by step, with troubleshooting     |
+| [docs/architecture.md](docs/architecture.md)       | System overview, auth flow, route map, server actions, decisions |
+| [docs/data-model.md](docs/data-model.md)           | ER diagram, table semantics, trade/position lifecycles           |
+| [docs/market-data.md](docs/market-data.md)         | Provider routing, cache TTLs, free-tier limitations              |
+| [docs/portfolio-math.md](docs/portfolio-math.md)   | P&L, TWR/MWR, equity curve, Playground simulator math            |
+| [docs/testing.md](docs/testing.md)                 | Test battery, E2E setup, CI, platform gotchas                    |
+| [SETUP.md](SETUP.md)                               | Full provisioning walkthrough                                    |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                 | Branch/commit conventions, PR flow                               |
 
-### 4. Run migrations
-
-```bash
-npx prisma migrate dev --name init
-npx prisma generate
-```
-
-### 5. Start dev server
-
-```bash
-npm run dev
-```
-
-Open [localhost:3000](http://localhost:3000).
-
-## Useful commands
+## Commands
 
 ```bash
-npm run dev              # dev server
+npm run dev              # dev server (localhost:3000)
 npm run build            # production build
 npm run lint             # ESLint
-npm run typecheck        # TypeScript no-emit check
-npm run test             # vitest unit + component tests
-npm run test:watch       # vitest in watch mode
-npm run test:coverage    # vitest with coverage report
-npm run test:e2e         # Playwright E2E
-npm run format           # Prettier write
-npm run format:check     # Prettier check (CI)
+npm run typecheck        # tsc --noEmit
+npm test                 # Vitest unit + component tests
+npm run test:e2e         # Playwright E2E (needs full .env.local)
+npm run format           # prettier --write .
+npm run format:check     # what CI runs
 npm run db:reset         # drop, migrate, and seed the dev DB
-npx prisma studio        # browse the DB visually
-npx prisma migrate dev   # create + apply a migration
-npx prisma generate      # regenerate the Prisma client
+npx prisma studio        # visual DB browser
+npx prisma migrate dev   # create + apply a new migration
 ```
 
-After running migrations, also apply the manual SQL files:
+After a fresh database, also apply the manual SQL (Supabase SQL editor or psql): `prisma/manual_constraints.sql` (CHECK constraints Prisma can't express) and `prisma/rls_policies.sql` (row-level security).
 
-```bash
-# In Supabase SQL editor (or psql), run:
-prisma/manual_constraints.sql   # CHECK constraints (Prisma can't express these)
-prisma/rls_policies.sql         # Row-level security policies
-```
+## Testing & CI
 
-## Project layout
-
-See [`CLAUDE.md`](CLAUDE.md).
+`npm test` runs 74 unit tests; CI (GitHub Actions) gates every PR on lint + typecheck + format + tests + build. The separate `npm audit` job is advisory (`continue-on-error`) and currently red pending the Next.js 16 major upgrade — see [docs/testing.md](docs/testing.md) for the full story.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). Short version: branch off `main`, conventional commit messages, lint + tests pass, open a PR.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: branch off `main`, conventional commits, CI green, squash-merge.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT — see [LICENSE](LICENSE).

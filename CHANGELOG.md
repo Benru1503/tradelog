@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Documentation suite under `docs/`: architecture, data model, market data, portfolio math, testing, prerequisites, running-locally (+ index). README rewritten around it.
+- 34 new unit tests (74 total): `stats.ts` and `positions.ts` suites (previously untested), `computeDashboardSeries`, MWR positive-rate scenario, dividend/fee cash-on-hand signs, DCA/what-if edge cases, and the four untested Zod schemas.
+
+### Fixed
+
+- **Win rate counted break-even trades as wins** — `computeStats` used decimal.js `isPositive()`, which is true for +0; a scratch trade inflated `winningTrades` and win rate. Now `gt(0)`/`lt(0)`.
+- **Dashboard flow markers mixed up same-instant cash flows** — `computeDashboardSeries` looked flows up by timestamp, so two flows at the same instant both rendered the last one's type. The originating `CashFlow` now travels on the timeline event.
+- `.gitattributes` enforcing LF line endings for all text files — without it, Windows checkouts with `core.autocrlf=true` turn the whole tree CRLF and `prettier --check .` fails on every file.
+
 - Soft delete on `Trade` (`deletedAt`) — paired with an Undo toast on the trade detail page.
 - `TradeRevision` table — append-only audit log of edits to entry/exit prices, quantity, direction, and dates. Surfaced as "Edit history" on the trade detail page.
 - New indexes on `Trade(userId, assetType)` and `Trade(userId, deletedAt)`.
@@ -15,9 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Manual SQL files: `prisma/manual_constraints.sql` (CHECK constraints), `prisma/rls_policies.sql` (RLS policies).
 - Privacy & legal: `/privacy`, `/terms` pages; `public/robots.txt` with `Disallow: /`; `noindex` meta tag.
 - Account actions: data export (`GET /api/export`), account deletion (Supabase admin + Prisma cascade) in Settings.
-- Error handling: `error.tsx`, `not-found.tsx`, `global-error.tsx`; Sonner toast provider; Vercel Analytics.
-- Sentry integration: `@sentry/nextjs` with `instrumentation.ts`, client/server/edge configs, source-map upload via `withSentryConfig`.
-- Security headers in `next.config.mjs`: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, HSTS.
+- Error handling: `error.tsx`, `not-found.tsx`, `global-error.tsx`; Sonner toast provider.
+- Security headers in `next.config.mjs`: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-DNS-Prefetch-Control. (HSTS is added by the Vercel platform, not by app config.)
 - Mobile basics: `manifest.json`, `icon.svg`, `theme-color` meta, viewport meta.
 - Code quality: `.prettierrc`, `.editorconfig`, `.nvmrc`, `engines` field, husky + lint-staged pre-commit hook.
 - Testing: Vitest + React Testing Library + jsdom; unit tests for `calcPnL`, formatters, and `tradeFormSchema`.
@@ -32,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `vitest.config.ts` renamed to `vitest.config.mts` — forces Vite's ESM config loader; the CJS fallback path crashes with `ERR_REQUIRE_ESM` since `std-env@4` went ESM-only.
+- `engines.node` tightened from `>=20` to `>=20.19` — the first Node 20 release with `require(esm)` enabled by default, which vitest 4 / jsdom's dependency chain needs. CI already resolved latest Node 20 and was unaffected.
+- `SETUP.md` refreshed: `prisma migrate deploy` for fresh clones, complete env var list (test auth + market data), pointer to the authoritative `prisma/rls_policies.sql`.
+- `CHANGELOG` corrected: Sentry, Vercel Analytics, and HSTS were listed as shipped but were never integrated — moved to Deferred / clarified.
 - `deleteTrade` now soft-deletes (sets `deletedAt`) instead of removing the row.
 - `updateTrade` writes to `TradeRevision` for any change to tracked fields.
 - All Trade list/find queries now filter `deletedAt: null`.
@@ -39,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deferred
 
+- Sentry error tracking — `.env.local.example` reserves the env vars, but `@sentry/nextjs` is **not** installed or wired yet.
+- Vercel Analytics — considered during hardening, not integrated.
 - React Hook Form refactor of `TradeForm` — current uncontrolled-form UX is good enough.
 - PostHog product analytics — Vercel Analytics handles web vitals; PostHog can come back when there's a question to answer.
 - Next.js 14 → 16 upgrade — `npm audit` flags 4 high-severity issues all resolved by upgrading. Major version, defer until tested.

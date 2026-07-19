@@ -6,6 +6,7 @@ You'll need:
 
 - A [Supabase](https://supabase.com) account (free tier is fine)
 - A [Google Cloud](https://console.cloud.google.com) account (free)
+- Node **≥ 20.19** (older 20.x breaks the test tooling — check `node -v`)
 - This repo cloned locally with `npm install` already run
 
 ---
@@ -152,6 +153,13 @@ DATABASE_URL="postgresql://postgres.YOUR-REF:PASSWORD@aws-0-REGION.pooler.supaba
 DIRECT_URL="postgresql://postgres.YOUR-REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres"
 
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+# E2E tests — any random string; powers /api/test/login outside production
+TEST_AUTH_SECRET="some-long-random-string"
+
+# Market data (see docs/market-data.md) — crypto works keyless via CoinGecko
+FINNHUB_API_KEY="your-finnhub-key"
+COINGECKO_DEMO_API_KEY=""
 ```
 
 > If your Postgres password contains special characters (`@`, `:`, `/`, etc.), URL-encode them. e.g. `@` becomes `%40`.
@@ -160,13 +168,13 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 
 ## 7. Run the Prisma migration
 
-This creates all the tables (`users`, `trades`, `tags`, `trade_tags`, `trade_images`) in your Supabase database.
+This creates all the tables (trades, positions, cash flows, watchlist, tags, market-data cache, playground snapshots, …) in your Supabase database.
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 ```
 
-Expected output ends with `Your database is now in sync with your schema.` and `✔ Generated Prisma Client`.
+Expected output ends with `All migrations have been successfully applied.` Use `npx prisma migrate dev --name <descriptive-name>` only when authoring a **new** migration.
 
 If something goes wrong:
 
@@ -188,7 +196,7 @@ You can also see them in the Supabase dashboard under **Database → Tables**.
 
 TradeLog connects to Postgres as the `postgres` user via Prisma, which **bypasses RLS**. So security today is enforced in app code (every query in `src/app/(app)/trades/actions.ts` and the page loaders scopes by `userId`). That's fine, but RLS adds a defense-in-depth layer in case anything ever runs as `anon` or `authenticated`.
 
-Run this once in **SQL Editor → + New query**:
+The authoritative, up-to-date policy set for **all** tables lives in [`prisma/rls_policies.sql`](prisma/rls_policies.sql) — paste that file into **SQL Editor → + New query** and run it. The Phase-1 subset below illustrates the intent:
 
 ```sql
 alter table users enable row level security;
@@ -280,7 +288,7 @@ Try creating a trade from `/trades/new` to verify the full round trip.
 
 1. Push the repo to GitHub.
 2. Import it in Vercel → it autodetects Next.js.
-3. **Environment Variables** — paste the same five vars from `.env.local`, plus override:
+3. **Environment Variables** — paste the same vars from `.env.local`, plus override:
    ```
    NEXT_PUBLIC_SITE_URL="https://your-app.vercel.app"
    ```

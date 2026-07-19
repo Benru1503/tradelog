@@ -10,7 +10,7 @@ See [`SETUP.md`](SETUP.md) for the full Supabase + Google OAuth walkthrough. TL;
 nvm use                        # pick up Node version from .nvmrc
 npm install
 cp .env.local.example .env.local
-# fill in Supabase + Sentry env vars
+# fill in Supabase env vars (see SETUP.md); market-data keys optional
 npx prisma migrate dev
 npm run dev
 ```

@@ -6,29 +6,36 @@ TradeLog — a full-stack trading diary/logger for a small group of friends. Log
 
 ## Handoff to next session
 
-_Last updated 2026-05-04 (end of session). **Phase 4 is fully shipped** — both What-if and DCA modes live, migration applied, all work committed and pushed to `main`. Three commits since `5f67557`: `9d1e228` (Phase 4 + Phase 3 dividend polish), `e1ebd34` (repo-wide prettier pass), `d3cd70b` (positions-table row-click fix)._
+_Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** First session on Idan's Windows machine: full test battery green after environment fixes (Node version, line endings, vitest config), professional docs suite added under `docs/`, README rewritten, several doc/reality mismatches corrected. **All of this session's work is uncommitted** — review + commit is the next step._
 
 ### Where we are
 
+- **The Supabase project is unreachable — NXDOMAIN on `jxlmdplmpykendthmjpy.supabase.co`.** Free-tier auto-pause after ~2.5 months idle (last activity 2026-05-04). Someone must log into the Supabase dashboard and **Restore** the project before any dev-server / e2e / browser work — and any Vercel deployment is down for the same reason. `.env.local` itself is now present on Idan's machine (copied from Ben, gitignored, verified untracked) and Playwright Chromium is installed, so `npm run test:e2e` should work the moment the project is back.
+- **Docs suite now exists**: `docs/` (architecture, data-model, market-data, portfolio-math, testing + index), README rewritten around it, SETUP.md refreshed, CHANGELOG corrected (Sentry / Vercel Analytics / HSTS were claimed but never integrated — now listed as Deferred).
 - Phase 4 §4.1 **What-if + DCA both ship**. `/playground` has a tab switcher (`PlaygroundTabs.tsx`); DCA uses XIRR-based CAGR, a Recharts ComposedChart (Area for value, dashed step Line for cumulative invested), and persists snapshots without the per-candle series (reproducible from params).
 - **All four Prisma migrations are applied to Supabase** — including `20260504000000_phase4_sim_snapshot`. No pending DDL.
 - Demo data is seeded on Ben's account via `scripts/seed-ben-demo.ts` — 15 trades, 8 cashflows, 8 tags, 4 watch items, 2 sim snapshots, 14 cached AssetSymbols with sectors, 2 trade revisions. Idempotent: gated by a `[demo]` marker in `notes`. To wipe: delete trades/cashflows where notes/note `contains "[demo]"`.
-- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` 40/40 pass, `prettier --check .` clean.
+- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` 74/74 pass, `prettier --check .` clean.
 - CI is green on `main` for the build job. **The audit job is red and that's pre-existing**: 5 npm advisories (1 moderate, 4 high) all chained to Next.js — fix is `next@16.2.4`, a major-version upgrade. The workflow has `continue-on-error: true` on the audit step so it doesn't gate the run, but it does light up red in the UI and trigger failure emails.
 
-### What shipped this session (2026-05-04)
+### What shipped this session (2026-07-19, Idan's machine — ALL UNCOMMITTED)
 
-1. **DCA mode** — `simulateDca()` and `xirr()` in `src/lib/playground.ts` (bisection-based annualized rate over the contribution + final-value cash flows). New validator `dcaFormSchema`. Server actions `runDca` / `saveDcaSnapshot` in `src/app/(app)/playground/actions.ts`. UI: `DcaPanel.tsx`, `PlaygroundTabs.tsx`. Polymorphic `SnapshotRow { kind, summary, ... }` so the saved-snapshots list renders both What-if and DCA rows in one panel.
-2. **Migration applied** — ran `npx prisma migrate deploy`, all four migrations now live on Supabase.
-3. **Demo seed** — `scripts/seed-ben-demo.ts`. Run via `npx tsx scripts/seed-ben-demo.ts`. Hardcodes Ben's user UUID `40bfe2c9-661a-4f2a-921b-9e8f4b8a5144`.
-4. **Repo-wide prettier pass** — first push failed CI because `prettier --check .` ran against 81 unformatted files (mostly pre-existing). Fixed in `e1ebd34`.
-5. **PositionsTable row-click bug** — same `<tr>` + `position:relative` quirk that hit TradesTable: the `<Link className="absolute inset-0">` overlay covered the viewport and intercepted every click after the first, sending users into the last-rendered row's position (ETH). Replaced with `onClick`/`onKeyDown` JS handler in `d3cd70b`.
+1. **Full test battery green**: tsc ✅, `next lint` ✅, `prettier --check .` ✅, vitest 74/74 ✅, production build ✅ (placeholder env vars, CI-style). Playwright e2e blocked — see the Supabase NXDOMAIN bullet above.
+2. **Environment fixes to get there** (all belong in the commit):
+   - `.gitattributes` (new) — enforces LF; Windows checkout with `core.autocrlf=true` had turned all 144+ files CRLF and prettier failed repo-wide.
+   - `vitest.config.ts` → `vitest.config.mts` (+ tsconfig include `**/*.mts`) — Vite's CJS config-loader fallback dies with `ERR_REQUIRE_ESM` (`std-env@4` is ESM-only).
+   - `engines.node` `>=20` → `>=20.19` in package.json + hand-synced in package-lock (deliberately NOT regenerated — see gotchas).
+3. **Docs suite** — `docs/architecture.md`, `docs/data-model.md` (mermaid ER), `docs/market-data.md`, `docs/portfolio-math.md`, `docs/testing.md`, `docs/README.md` index; README.md rewritten (badges, features, quickstart, doc links); SETUP.md refreshed (`migrate deploy`, full env list incl. TEST_AUTH_SECRET + market-data keys, RLS pointer to `prisma/rls_policies.sql`).
+4. **Doc/reality corrections** — CHANGELOG claimed Sentry, Vercel Analytics, and HSTS as shipped; none exist in the code. Moved to Deferred / clarified. `.env.local.example` Sentry block marked "PLANNED — not yet integrated". Dead `/Users/Ben_Rubinovitz/...` plan-file path removed from `src/lib/portfolio.ts` comment. **Still open:** `/privacy` page tells users Sentry error tracking exists — user-facing legal text, left for a human decision.
+5. **34 new unit tests (74 total)** — new suites for `stats.ts` and `positions.ts` (both previously untested), plus `computeDashboardSeries`, MWR positive-rate, cash-on-hand dividend/fee signs, DCA/what-if edges, and the four untested Zod schemas. **They caught two real bugs, both fixed:** (a) break-even trades counted as wins — decimal.js `isPositive()` is true for +0; now `gt(0)`/`lt(0)` in `computeStats`; (b) dashboard flow markers looked up by timestamp, so two same-instant cash flows both showed the last one's type — the `CashFlow` now travels on the timeline event.
+6. **`docs/prerequisites.md` + `docs/running-locally.md`** — machine checklist (with verify commands) and clone-to-running-app steps with a troubleshooting table; linked from README quickstart.
+7. **E2E readiness** — Chromium installed via `npx playwright install chromium`; suite starts but dies in global-setup on the Supabase NXDOMAIN. Nothing wrong with the tests themselves.
 
 ### Suggested first message of next session
 
-_"Browser-test /playground end-to-end (try BTC for both What-if and DCA), then pick the next feature."_
+_"Restore the Supabase project from the dashboard, then run `npm run test:e2e` and browser-test /playground end-to-end (BTC for both What-if and DCA). Also review + commit the uncommitted work if it wasn't committed last session."_
 
-The What-if + DCA panels work in the abstract (40/40 tests, type/lint clean) but neither has been driven through a browser. Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`.
+The What-if + DCA panels still haven't been driven through a browser — blocked by the paused Supabase project, everything else is ready (env present, Chromium installed). Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`. A manual smoke checklist lives at the bottom of `docs/testing.md`. Note the free-tier pause trap: a week of inactivity pauses the project again — worth considering a weekly keep-alive ping or upgrading the project if it keeps biting.
 
 ### What's left in the spec (not in any active phase)
 
@@ -41,6 +48,10 @@ The What-if + DCA panels work in the abstract (40/40 tests, type/lint clean) but
 
 ### Don't repeat past mistakes
 
+- **Idan's machine needs a Node upgrade before dev work.** System Node is 20.13.1; the project needs ≥ 20.19 (`require(esm)` — vitest 4 / jsdom chain crashes with `ERR_REQUIRE_ESM` on older). This session used a throwaway portable Node in the scratchpad; that's gone next session. Upgrade system Node (e.g. `winget install OpenJS.NodeJS.LTS`) or install nvm-windows.
+- **Don't regenerate `package-lock.json` on this machine.** Ben's npm writes `libc` metadata fields that Idan's npm strips — a full `npm install`/`--package-lock-only` produces a 60+-line cosmetic diff that will ping-pong between machines. Hand-sync trivial lock changes or let Ben/CI regenerate.
+- **npm inside OneDrive is flaky.** If vitest dies with `Cannot find module './rolldown-binding.win32-x64-msvc.node'`, the optional platform binding got skipped: `npm install --no-save "@rolldown/binding-win32-x64-msvc@<rolldown version>"`. Pause OneDrive sync for big installs. (Recipe also in `docs/testing.md`.)
+- **If prettier suddenly flags ~150 files on Windows**, the working tree is CRLF from a pre-`.gitattributes` checkout: `git rm --cached -r -q . && git reset --hard` (tree must be otherwise clean).
 - **`npm run dev` does NOT re-read `.env*` files.** If you change env vars (project ref, DB URL, OAuth keys, provider API keys), kill the dev server and restart. Symptom from 2026-04-30: login looked like it "downloaded something and loaded forever" because client and server were using different Supabase URLs.
 - New project ref is `jxlmdplmpykendthmjpy` (Frankfurt). Old is `xcmtplfqeqltsmuftooj` (Seoul). Verify with `grep -E "SUPABASE|DATABASE_URL|DIRECT_URL" .env`.
 - `.env.local` has a `DATABASE_URL` override pointing at the EU **session-mode** pooler (port 5432, no `pgbouncer=true`). Intentional for dev speed — don't normalize it.
