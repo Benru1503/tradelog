@@ -32,7 +32,12 @@ Last updated: 2026-07-19.
       course instructions.
 - [ ] **Survey (5% of the grade, free points):**
       <https://docs.google.com/forms/d/e/1FAIpQLScoi4MJNRKAN__3Jhmul19GCh5RZLVd7PWg43VSGZD9GTyRSA/viewform>
-- [ ] Submission form wants: GitHub repo link (public, no secrets ✅), README
+- [ ] **Repo visibility decision (Idan + Ben):** the repo is currently
+      **private** — graders can't open the submission link, and the Colab
+      badge 404s for anyone unauthorized (Colab needs "Authorize with GitHub" + include-private-repos even for us). Either make it public before
+      submission (it's secret-clean: `.env.local` gitignored, keyless data
+      sources) or add the grader as a collaborator.
+- [ ] Submission form wants: GitHub repo link (accessible — see above), README
       with run instructions ✅, `requirements.txt` ✅ (`ml/requirements.txt`).
 
 ## App / infra follow-ups
