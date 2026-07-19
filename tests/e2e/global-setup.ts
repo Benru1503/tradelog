@@ -41,6 +41,7 @@ export default async function globalSetup() {
 
   const existing = list.users.find((u) => u.email === TEST_USER_EMAIL);
 
+  let authUserId: string;
   if (existing) {
     // Reset to known password & metadata, in case a prior run mutated it.
     const { error: updErr } = await admin.auth.admin.updateUserById(existing.id, {
@@ -49,6 +50,7 @@ export default async function globalSetup() {
       user_metadata: { full_name: TEST_USER_NAME },
     });
     if (updErr) throw updErr;
+    authUserId = existing.id;
     console.log(`[e2e] reusing test user ${existing.id}`);
   } else {
     const { data, error: createErr } = await admin.auth.admin.createUser({
@@ -58,6 +60,21 @@ export default async function globalSetup() {
       user_metadata: { full_name: TEST_USER_NAME },
     });
     if (createErr) throw createErr;
-    console.log(`[e2e] created test user ${data.user?.id}`);
+    if (!data.user) throw new Error("e2e setup: createUser returned no user");
+    authUserId = data.user.id;
+    console.log(`[e2e] created test user ${data.user.id}`);
+  }
+
+  // auth.users and the app's public.users have NO foreign key between them.
+  // If a previous run deleted only the auth user, the app row survives with
+  // this email but a stale id — and requireUser()'s upsert then dies on the
+  // unique email constraint. Service role bypasses RLS; clean it up front.
+  const { error: orphanErr } = await admin
+    .from("users")
+    .delete()
+    .eq("email", TEST_USER_EMAIL)
+    .neq("id", authUserId);
+  if (orphanErr) {
+    console.warn(`[e2e] orphaned users-row cleanup failed: ${orphanErr.message}`);
   }
 }

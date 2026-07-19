@@ -14,14 +14,14 @@ test.describe("auth gate", () => {
 test.describe("dashboard", () => {
   test("loads with stats cards and equity-curve placeholder", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
     // Four stats cards
     await expect(page.getByText(/total p&l/i)).toBeVisible();
     await expect(page.getByText(/win rate/i)).toBeVisible();
-    await expect(page.getByText(/best trade/i)).toBeVisible();
-    await expect(page.getByText(/worst trade/i)).toBeVisible();
-    // Equity curve card title
-    await expect(page.getByText(/equity curve/i)).toBeVisible();
+    await expect(page.getByText(/total trades/i)).toBeVisible();
+    await expect(page.getByText(/avg r:r/i)).toBeVisible();
+    // Equity curve card title (heading role — the empty-state copy also says "equity curve")
+    await expect(page.getByRole("heading", { name: /equity curve/i })).toBeVisible();
   });
 
   test("New trade CTA navigates to the form", async ({ page }) => {
@@ -81,10 +81,9 @@ test.describe("trade CRUD", () => {
     await page.goto("/trades");
     await expect(page.getByRole("cell", { name: asset, exact: true })).toBeVisible();
 
-    // DELETE — handle the native confirm dialog
-    page.once("dialog", (d) => d.accept());
-    await page.goto(`/trades/${page.url().split("/").pop()}`).catch(() => {});
-    // Reach detail again deterministically by clicking the cell's row
+    // DELETE — reach the detail page via the list row, then confirm the dialog.
+    // (Register the dialog handler exactly once, right before the click that
+    // triggers it — a second once-handler throws "already handled".)
     await page.goto("/trades");
     await page.getByRole("link", { name: new RegExp(`view ${asset} trade`, "i") }).click();
     await expect(page).toHaveURL(/\/trades\/[0-9a-f-]{36}$/);
@@ -153,14 +152,16 @@ test.describe("trade list — sort & filter", () => {
 
   test("filter by status=OPEN hides closed trades", async ({ page }) => {
     await page.goto("/trades");
-    await page.getByLabel("Status").selectOption("OPEN");
+    // Filters are chips, not a <select>, since the Phase 2 redesign.
+    await page.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(page).toHaveURL(/status=OPEN/);
     await expect(page.getByRole("cell", { name: "CCC-SORT", exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: "AAA-SORT", exact: true })).toHaveCount(0);
   });
 
   test("sort by P&L descending puts the win first", async ({ page }) => {
     await page.goto("/trades");
-    // Click the P&L header twice to ensure descending (default goes desc on first click of new column)
+    // First click on a new column sorts descending; open trades (null pnl) sort last.
     await page.getByRole("button", { name: /^P&L/i }).click();
     await expect(page).toHaveURL(/sort=pnl/);
 

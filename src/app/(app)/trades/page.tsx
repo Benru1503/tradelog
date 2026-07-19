@@ -56,7 +56,13 @@ export default async function TradesPage({
 
   const trades = await prisma.trade.findMany({
     where,
-    orderBy: { [f.sort]: f.dir },
+    // Nullable sort fields (open trades have no exit/pnl yet): Postgres puts
+    // nulls FIRST on desc, which surfaces open trades above the biggest
+    // winners when sorting by P&L. Pin nulls last in both directions.
+    orderBy:
+      f.sort === "pnl" || f.sort === "pnlPercent" || f.sort === "exitDate"
+        ? { [f.sort]: { sort: f.dir, nulls: "last" } }
+        : { [f.sort]: f.dir },
   });
 
   const openCount = trades.filter((t) => t.status === "OPEN").length;

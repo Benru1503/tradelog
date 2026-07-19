@@ -10,7 +10,8 @@ _Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** Fi
 
 ### Where we are
 
-- **The Supabase project is unreachable — NXDOMAIN on `jxlmdplmpykendthmjpy.supabase.co`.** Free-tier auto-pause after ~2.5 months idle (last activity 2026-05-04). Someone must log into the Supabase dashboard and **Restore** the project before any dev-server / e2e / browser work — and any Vercel deployment is down for the same reason. `.env.local` itself is now present on Idan's machine (copied from Ben, gitignored, verified untracked) and Playwright Chromium is installed, so `npm run test:e2e` should work the moment the project is back.
+- **Supabase project restored by Ben on 2026-07-19** (it auto-paused after ~2.5 months idle; DNS was NXDOMAIN until restore). `/api/health` verified: DB answering, ~550ms from Idan's network. **Free-tier pause trap remains**: ~1 week of inactivity pauses it again — consider a weekly keep-alive hitting `/api/health` (now public) or upgrading the project.
+- **Playwright E2E is green for the first time: 8/8** on Idan's machine against the restored project. `.env.local` present (gitignored), Chromium installed.
 - **Docs suite now exists**: `docs/` (architecture, data-model, market-data, portfolio-math, testing + index), README rewritten around it, SETUP.md refreshed, CHANGELOG corrected (Sentry / Vercel Analytics / HSTS were claimed but never integrated — now listed as Deferred).
 - Phase 4 §4.1 **What-if + DCA both ship**. `/playground` has a tab switcher (`PlaygroundTabs.tsx`); DCA uses XIRR-based CAGR, a Recharts ComposedChart (Area for value, dashed step Line for cumulative invested), and persists snapshots without the per-candle series (reproducible from params).
 - **All four Prisma migrations are applied to Supabase** — including `20260504000000_phase4_sim_snapshot`. No pending DDL.
@@ -20,7 +21,7 @@ _Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** Fi
 
 ### What shipped this session (2026-07-19, Idan's machine — ALL UNCOMMITTED)
 
-1. **Full test battery green**: tsc ✅, `next lint` ✅, `prettier --check .` ✅, vitest 74/74 ✅, production build ✅ (placeholder env vars, CI-style). Playwright e2e blocked — see the Supabase NXDOMAIN bullet above.
+1. **Full test battery green**: tsc ✅, `next lint` ✅, `prettier --check .` ✅, vitest 74/74 ✅, production build ✅ (placeholder env vars, CI-style), **Playwright e2e 8/8 ✅** (real Supabase, after Ben restored the project).
 2. **Environment fixes to get there** (all belong in the commit):
    - `.gitattributes` (new) — enforces LF; Windows checkout with `core.autocrlf=true` had turned all 144+ files CRLF and prettier failed repo-wide.
    - `vitest.config.ts` → `vitest.config.mts` (+ tsconfig include `**/*.mts`) — Vite's CJS config-loader fallback dies with `ERR_REQUIRE_ESM` (`std-env@4` is ESM-only).
@@ -29,13 +30,14 @@ _Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** Fi
 4. **Doc/reality corrections** — CHANGELOG claimed Sentry, Vercel Analytics, and HSTS as shipped; none exist in the code. Moved to Deferred / clarified. `.env.local.example` Sentry block marked "PLANNED — not yet integrated". Dead `/Users/Ben_Rubinovitz/...` plan-file path removed from `src/lib/portfolio.ts` comment. **Still open:** `/privacy` page tells users Sentry error tracking exists — user-facing legal text, left for a human decision.
 5. **34 new unit tests (74 total)** — new suites for `stats.ts` and `positions.ts` (both previously untested), plus `computeDashboardSeries`, MWR positive-rate, cash-on-hand dividend/fee signs, DCA/what-if edges, and the four untested Zod schemas. **They caught two real bugs, both fixed:** (a) break-even trades counted as wins — decimal.js `isPositive()` is true for +0; now `gt(0)`/`lt(0)` in `computeStats`; (b) dashboard flow markers looked up by timestamp, so two same-instant cash flows both showed the last one's type — the `CashFlow` now travels on the timeline event.
 6. **`docs/prerequisites.md` + `docs/running-locally.md`** — machine checklist (with verify commands) and clone-to-running-app steps with a troubleshooting table; linked from README quickstart.
-7. **E2E readiness** — Chromium installed via `npx playwright install chromium`; suite starts but dies in global-setup on the Supabase NXDOMAIN. Nothing wrong with the tests themselves.
+7. **E2E suite repaired and green (8/8)** — it had rotted since Phase 1: stale UI assertions ("Welcome back" heading, Best/Worst Trade cards, `<select>` filters — all redesigned in Phase 2), a double-registered dialog handler, and a real lifecycle bug: **teardown deleted only the Supabase auth user; `auth.users` and `public.users` have no FK**, so the stranded app row's unique email crashed the next run's `requireUser()` upsert ("Something broke" error boundary on /dashboard). Setup now cleans orphaned rows, teardown deletes the app row first (its FKs cascade the test data).
+8. **Two more product fixes from the e2e pass** — trades sorted by P&L/exit-date now pin nulls last (Postgres `desc` put open trades above the biggest winners); `/api/health` added to middleware public paths (it redirected probes to the login page). Note: the same orphaned-row edge exists in production if an auth user is ever deleted outside the app's Settings flow and re-registers with the same email — `requireUser()` will crash. Rare, but worth a defensive fix someday.
 
 ### Suggested first message of next session
 
-_"Restore the Supabase project from the dashboard, then run `npm run test:e2e` and browser-test /playground end-to-end (BTC for both What-if and DCA). Also review + commit the uncommitted work if it wasn't committed last session."_
+_"Browser-test /playground end-to-end (BTC for both What-if and DCA — the manual checklist at the bottom of docs/testing.md), then pick the next feature."_
 
-The What-if + DCA panels still haven't been driven through a browser — blocked by the paused Supabase project, everything else is ready (env present, Chromium installed). Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`. A manual smoke checklist lives at the bottom of `docs/testing.md`. Note the free-tier pause trap: a week of inactivity pauses the project again — worth considering a weekly keep-alive ping or upgrading the project if it keeps biting.
+The What-if + DCA panels are the last thing never driven through a real browser — e2e covers auth + trades CRUD but not the Playground. Everything is staged: Supabase restored, env present, Chromium installed, dev server verified working. Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`. Also consider a weekly keep-alive for the Supabase free-tier pause trap (e.g. scheduled GitHub Action curling `/api/health` on the deployed URL).
 
 ### What's left in the spec (not in any active phase)
 

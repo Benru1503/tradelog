@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Sorting trades by P&L (or exit date) surfaced open trades first** — Postgres puts nulls first on `desc`, so "biggest winners" started with rows that have no P&L yet. Sort now pins nulls last in both directions.
+- **`/api/health` was behind the auth redirect** — probes got a 200 login page instead of the DB liveness JSON. Added to the middleware's public paths.
+- **E2E suite restored to green (8/8)** — assertions still targeted the Phase 1 UI ("Welcome back" heading, Best/Worst Trade cards, `<select>` filters), one dialog handler was registered twice, and the test-user lifecycle was broken: teardown deleted only the Supabase auth user, stranding the app's `users` row (no FK links the two schemas), which crashed the next run's `requireUser()` upsert on the unique email. Setup now cleans orphaned rows; teardown deletes the app row first.
 - **Win rate counted break-even trades as wins** — `computeStats` used decimal.js `isPositive()`, which is true for +0; a scratch trade inflated `winningTrades` and win rate. Now `gt(0)`/`lt(0)`.
 - **Dashboard flow markers mixed up same-instant cash flows** — `computeDashboardSeries` looked flows up by timestamp, so two flows at the same instant both rendered the last one's type. The originating `CashFlow` now travels on the timeline event.
 - `.gitattributes` enforcing LF line endings for all text files — without it, Windows checkouts with `core.autocrlf=true` turn the whole tree CRLF and `prettier --check .` fails on every file.
