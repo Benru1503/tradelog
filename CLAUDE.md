@@ -6,20 +6,31 @@ TradeLog — a full-stack trading diary/logger for a small group of friends. Log
 
 ## Handoff to next session
 
-_Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** First session on Idan's Windows machine: full test battery green after environment fixes (Node version, line endings, vitest config), professional docs suite added under `docs/`, README rewritten, several doc/reality mismatches corrected. **All of this session's work is uncommitted** — review + commit is the next step._
+_Last updated 2026-07-19 (second session that day). The morning session's work (docs suite, test battery, e2e revival) is **committed and pushed** (`9b36b53..c3580f0`). The afternoon session shipped **Phase 5 — Predict**, the ML final-project feature (course PDF מסלול 2): trained XGBoost models, TS inference, `/predict` page, Colab notebook, tests, docs. **All Phase 5 work is uncommitted** — review + commit is the next step._
 
 ### Where we are
 
+- **Phase 5 — Predict is fully built and browser-verified (uncommitted).** `/predict` serves XGBoost next-day/next-week direction calls for any ticker (crypto keyless golden path; stocks via Yahoo's keyless v8 endpoint), persists per-user predictions, lazily scores them HIT/MISS, and shows an honest model card. Live BTC D1+W1 flow driven in a real browser 2026-07-19 — result card, history rows, dedupe all verified (screenshots were in the session scratchpad).
 - **Supabase project restored by Ben on 2026-07-19** (it auto-paused after ~2.5 months idle; DNS was NXDOMAIN until restore). `/api/health` verified: DB answering, ~550ms from Idan's network. **Free-tier pause trap remains**: ~1 week of inactivity pauses it again — consider a weekly keep-alive hitting `/api/health` (now public) or upgrading the project.
-- **Playwright E2E is green for the first time: 8/8** on Idan's machine against the restored project. `.env.local` present (gitignored), Chromium installed.
+- **Playwright E2E is green: 11/11** (8 revived this morning + 3 new predict specs). `.env.local` present (gitignored), Chromium installed.
 - **Docs suite now exists**: `docs/` (architecture, data-model, market-data, portfolio-math, testing + index), README rewritten around it, SETUP.md refreshed, CHANGELOG corrected (Sentry / Vercel Analytics / HSTS were claimed but never integrated — now listed as Deferred).
 - Phase 4 §4.1 **What-if + DCA both ship**. `/playground` has a tab switcher (`PlaygroundTabs.tsx`); DCA uses XIRR-based CAGR, a Recharts ComposedChart (Area for value, dashed step Line for cumulative invested), and persists snapshots without the per-candle series (reproducible from params).
-- **All four Prisma migrations are applied to Supabase** — including `20260504000000_phase4_sim_snapshot`. No pending DDL.
+- **All five Prisma migrations are applied to Supabase** — including `20260719130000_phase5_predictions` (applied this session from Idan's machine via the session pooler). No pending DDL. RLS policy for `predictions` added to `prisma/rls_policies.sql` but **not yet run in the Supabase SQL editor** (the file also carries a TODO: positions/cash_flows/watch_items/sim_snapshots never had policies — pre-existing gap).
 - Demo data is seeded on Ben's account via `scripts/seed-ben-demo.ts` — 15 trades, 8 cashflows, 8 tags, 4 watch items, 2 sim snapshots, 14 cached AssetSymbols with sectors, 2 trade revisions. Idempotent: gated by a `[demo]` marker in `notes`. To wipe: delete trades/cashflows where notes/note `contains "[demo]"`.
-- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` 74/74 pass, `prettier --check .` clean.
+- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` **109/109** pass (35 new ML tests), `prettier --check .` clean, production build clean, e2e **11/11**.
 - CI is green on `main` for the build job. **The audit job is red and that's pre-existing**: 5 npm advisories (1 moderate, 4 high) all chained to Next.js — fix is `next@16.2.4`, a major-version upgrade. The workflow has `continue-on-error: true` on the audit step so it doesn't gate the run, but it does light up red in the UI and trigger failure emails.
 
-### What shipped this session (2026-07-19, Idan's machine — ALL UNCOMMITTED)
+### What shipped this session (Phase 5 — Predict, 2026-07-19 afternoon — ALL UNCOMMITTED)
+
+1. **Trained models** — `ml/train.py` (Python, plain-loop features mirrored 1:1 in TS): 14 assets (BTC/ETH + 12 stocks/ETFs), Yahoo v8 daily closes 2020→now, 23,812-row panel, 19 scale-free features, XGBoost d1 (441 trees) + w1 (66 trees), chronological split, early stopping. Honest metrics: test AUC ≈ 0.53, acc 51.7% vs 51.8% base. Backtest (long if p≥0.55, flat else, 10 bps): **BTC +9.7% vs −46.1% buy-hold** (sat out the crash), AAPL/SPY negative alpha — regime-dependent edge, stated as such in the UI.
+2. **Artifacts** — `src/lib/ml/artifacts/{model.d1,model.w1,meta}.json` (tree dumps + measured intercepts + metrics + backtest) and `tests/unit/fixtures/ml-goldens.json`. **These four regenerate together via `python ml/train.py` — never separately.**
+3. **TS inference** (`src/lib/ml/`) — `xgboost.ts` (tree walker: `Math.fround` float32 splits, NaN→missing branch), `features.ts` (finite-lookback indicators: Cutler RSI, SMA-MACD proxy, population std), `history.ts` (daily closes: CoinGecko market_chart for crypto — midnight point = previous day's close, drop partial "today"; Yahoo v8 for stocks/forex), `model.ts` (JSON imports + feature-order assert), `lifecycle.ts` (resolvesAt/direction/outcome/dedupe rules), `resolve-due.ts` (lazy HIT/MISS scoring on page view).
+4. **App surface** — `Prediction` model + migration `20260719130000_phase5_predictions` (applied to Supabase), `/predict` page (holdings quick-picks, horizon select, result card, model card `<details>`, history table with outcome pills + per-user track record, delete w/ confirm), `predictFormSchema`, nav entry (Sparkles), `resolveSymbol` extracted to `src/lib/marketdata/resolve.ts` (playground now imports it).
+5. **Course deliverables** (PDF מסלול 2) — `ml/tradelog_prediction.ipynb`: full Colab notebook (33 cells — EDA, on-chain blockchain.info + macro ^GSPC/^VIX/DX-Y.NYB + optional pytrends alt-data, XGB-lite vs XGB-full vs LSTM, fee-aware backtest + sensitivity, inference demo, JSON-export parity demo, limitations). Plus `ml/README.md` (Colab badge, requirement-mapping table) and `ml/requirements.txt`. **The notebook ships unexecuted — someone must Run All in Colab before submission so the graded copy has outputs.**
+6. **Tests** — 35 new unit tests (109 total): `ml-features` (golden parity to 9 decimals + edges), `ml-xgboost` (end-to-end probability parity to 8 decimals vs Python, float32-boundary stump, missing-branch), `ml-lifecycle`, `predictFormSchema`. E2E: `predict.spec.ts` (3 DOM specs, no live-provider dependency) → 11/11. Live BTC D1+W1+dedupe verified via a throwaway spec (deleted after).
+7. **Docs** — `docs/ml-prediction.md` (pipeline, parity contract, conventions, retraining), README + docs index + testing.md updated, CHANGELOG entry, this handoff.
+
+### What shipped in the morning session (2026-07-19 — committed & pushed, `9b36b53..c3580f0`)
 
 1. **Full test battery green**: tsc ✅, `next lint` ✅, `prettier --check .` ✅, vitest 74/74 ✅, production build ✅ (placeholder env vars, CI-style), **Playwright e2e 8/8 ✅** (real Supabase, after Ben restored the project).
 2. **Environment fixes to get there** (all belong in the commit):
@@ -35,9 +46,9 @@ _Last updated 2026-07-19 (end of session). **Phase 4 remains fully shipped.** Fi
 
 ### Suggested first message of next session
 
-_"Browser-test /playground end-to-end (BTC for both What-if and DCA — the manual checklist at the bottom of docs/testing.md), then pick the next feature."_
+_"Review + commit/push the Phase 5 Predict work, then let's prep the course submission: run the notebook in Colab and check off the deliverables list."_
 
-The What-if + DCA panels are the last thing never driven through a real browser — e2e covers auth + trades CRUD but not the Playground. Everything is staged: Supabase restored, env present, Chromium installed, dev server verified working. Crypto via CoinGecko keyless is the golden path; stocks/forex will surface a graceful "Historical data unavailable" message because Finnhub free tier doesn't ship `/stock/candle`. Also consider a weekly keep-alive for the Supabase free-tier pause trap (e.g. scheduled GitHub Action curling `/api/health` on the deployed URL).
+Still open for the **course submission** (outside repo code): (a) someone runs `ml/tradelog_prediction.ipynb` in Colab top-to-bottom so the submitted copy has executed outputs; (b) the 5-page מסמך אפיון וסיכום PDF (problem, architecture, results, Risks & Caveats — `docs/ml-prediction.md` + notebook §11 are ready source material); (c) the 3–5 min demo video (`/predict` live + notebook backtest section is a natural script); (d) the survey (5% of the grade). Also still worth doing: browser-pass `/playground` per the checklist (never done — this session's manual pass covered `/predict` only), a weekly `/api/health` keep-alive for the Supabase pause trap, and running the updated `prisma/rls_policies.sql` in the Supabase SQL editor.
 
 ### What's left in the spec (not in any active phase)
 
@@ -63,6 +74,10 @@ The What-if + DCA panels are the last thing never driven through a real browser 
 - **Never use `<Link className="absolute inset-0">` inside a `<tr>`** for row navigation. `position:relative` is silently ignored on `<tr>` in many browsers; the Link's containing block becomes the viewport, the overlay covers the whole page, and every click after the first lands on whichever was the last-rendered row. Hit twice already (TradesTable, PositionsTable). Use `onClick`/`onKeyDown` on the `<tr>` with `role="link"`/`tabIndex={0}` — see `TradesTable.tsx` and `PositionsTable.tsx` for the canonical pattern. Fine on `<li>`/`<div>`, only `<tr>` is the trap.
 - `Sidebar` uses `sticky top-0 h-screen` on the `<aside>` so the avatar footer stays in viewport on long pages. Don't remove unless you replace with another full-height pattern.
 - `PRISMA_DEBUG=1` is the diagnostic of choice for any future perf work — don't remove the logging branch in `src/lib/prisma.ts`.
+- **Prisma CLI can't see the env: there is NO `.env` file — everything lives in `.env.local`, which the Prisma CLI does not read.** Before `npx prisma migrate deploy` / `validate` on this machine, load it into the shell (strip surrounding quotes!): PowerShell loop over `Get-Content .env.local` matching `^([A-Z_][A-Z0-9_]*)=(.*)$`, trimming `"` from the value, `Set-Item env:`. Symptom otherwise: "Environment variable not found: DIRECT_URL" or P1013 "scheme not recognized" (quotes leaked into the URL).
+- **The four ML artifacts regenerate together via `python ml/train.py`** — `src/lib/ml/artifacts/{model.d1,model.w1,meta}.json` + `tests/unit/fixtures/ml-goldens.json`. Never hand-edit them, never commit a subset; the `ml-features`/`ml-xgboost` vitest suites are the tripwire. Feature formulas are a **parity contract**: change `ml/train.py` and `src/lib/ml/features.ts` together or not at all (finite lookback, plain loops — no pandas `ewm`, no recursive indicators).
+- **Never import `src/lib/ml/model.ts` (or the artifact JSONs) from a client component** — that's ~470KB into the browser bundle. Server components pass plain-data slices down (see `predict/page.tsx` → `ModelCardData`).
+- Python 3.14 is installed system-wide (`py -3.14`). For ML work: venv **outside OneDrive**, `pip install -r ml/requirements.txt` (numpy/pandas/sklearn/xgboost is enough for `train.py`; TF is Colab-only).
 - **CI runs `prettier --check .` against the whole repo.** Run `npx prettier --write .` (or set up a pre-commit hook) before pushing — a partial pass will fail the build job. The audit job will probably stay red until the Next.js major upgrade, but that's `continue-on-error: true` so it doesn't gate; the build job is the real gate.
 
 ## Tech Stack
@@ -132,6 +147,7 @@ src/
 - **WatchItem:** symbols a user is tracking but doesn't own yet, with optional target price + direction.
 - **AssetSymbol / AssetPrice:** cached resolved tickers + latest prices from the market-data provider.
 - **SimSnapshot:** saved Playground scenarios (`kind: WHAT_IF | DCA`, `params Json`, `result Json`). Sandbox-only — never read by the dashboard or analytics.
+- **Prediction:** one row per /predict model run (symbol, horizon D1/W1, direction, pUp, priceAt, modelVersion, resolvesAt → lazily resolved to HIT/MISS against a live quote). Sandbox-only, like SimSnapshot.
 - **Tag:** user-scoped labels (e.g., "breakout", "earnings play") with colors.
 - **TradeImage:** screenshots attached to trades via Supabase Storage.
 
@@ -148,6 +164,8 @@ src/
 - §3.5 ✅ Dividend tracking — `CashFlow.assetSymbol` (new column + index), TickerAutocomplete on the Dividend modal, asset-filtered chip on `/trades/[id]`, ticker pill on Activity timeline, "Projected annual dividend" widget on `/analytics` (`src/lib/marketdata/yields.ts` + `finnhubProvider.getDividendYield`).
 - §3.6 ✅ Top movers strip on `/dashboard` (`src/components/dashboard/TopMoversStrip.tsx`).
 - **Market-data router + cache + Finnhub/CoinGecko providers** at `src/lib/marketdata/`. Consumed by `/api/tickers/search`, `/watchlist`, `/positions`, `/positions/[id]`, `/trades/[id]`, and `/analytics`.
+
+**Phase 5 — Predict (ML, course מסלול 2): built 2026-07-19 (migration applied; code uncommitted at time of writing).** XGBoost next-day/next-week direction forecasts at `/predict` for any ticker. Offline Python trainer (`ml/train.py`) exports JSON tree dumps + goldens; pure-TS server-side evaluator (`src/lib/ml/`); per-user `Prediction` rows resolve lazily to HIT/MISS. Research notebook `ml/tradelog_prediction.ipynb` (EDA, alt-data, XGBoost vs LSTM, fee-aware backtest). Full write-up: `docs/ml-prediction.md`. Sandbox-only — never feeds dashboard/analytics.
 
 **Phase 4 — Playground: shipped 2026-05-04 (migration applied, code on `main`).** Both What-if and DCA modes live behind a tab switcher at `/playground`. Pure simulator in `src/lib/playground.ts` (`simulateWhatIf`, `simulateDca`, `xirr`, `pickCandleAt`). Server actions in `src/app/(app)/playground/actions.ts`. UI: `WhatIfPanel.tsx`, `DcaPanel.tsx`, `PlaygroundTabs.tsx`, polymorphic `SnapshotsList.tsx`. Validators `whatIfFormSchema` + `dcaFormSchema`. DCA chart is Recharts `ComposedChart` (Area for value, dashed step Line for cumulative invested). CAGR is XIRR (bisection-based money-weighted rate), not naïve final/invested. Reuses `TradeChart` + `TickerAutocomplete`; no new design primitives. Snapshots persist totals + contributions only — the per-candle series is dropped on save (reproducible from params, would bloat the row). 14 unit tests. Browser-test pass still pending.
 

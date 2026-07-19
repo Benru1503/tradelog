@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 5 — Predict (ML direction forecast, course מסלול 2).** New `/predict` page: XGBoost probability that any ticker closes higher after one day / one week, with per-user prediction history that lazily resolves against live quotes and scores HIT/MISS. Models are trained offline in Python (`ml/train.py`, 14 assets since 2020, chronological split) and served by a pure-TypeScript tree evaluator (`src/lib/ml/`) — float32 split semantics, NaN-as-missing, measured intercept; golden vectors exported by the trainer pin Python↔TS parity in the unit suite. New `Prediction` table (migration `20260719130000_phase5_predictions`, RLS policy added), `predictions` nav entry, honest in-UI model card (test AUC ≈ 0.53 vs base rate, fee-aware backtest table). Research deliverable: `ml/tradelog_prediction.ipynb` — full Colab notebook (EDA, on-chain + macro + optional Google Trends alternative data, XGBoost vs LSTM, backtest with fees) + `ml/README.md` + `ml/requirements.txt`. Docs: `docs/ml-prediction.md`. 35 new unit tests (109 total), 3 new e2e specs (11 total); live BTC flow browser-verified end-to-end.
+- Shared `resolveSymbol` helper extracted to `src/lib/marketdata/resolve.ts` (was private to the Playground actions; now also used by Predict).
 - Documentation suite under `docs/`: architecture, data model, market data, portfolio math, testing, prerequisites, running-locally (+ index). README rewritten around it.
 - 34 new unit tests (74 total): `stats.ts` and `positions.ts` suites (previously untested), `computeDashboardSeries`, MWR positive-rate scenario, dividend/fee cash-on-hand signs, DCA/what-if edge cases, and the four untested Zod schemas.
 

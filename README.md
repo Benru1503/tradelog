@@ -13,6 +13,7 @@ A full-stack trading diary for a small group of friends. Log trades across **sto
 - **Analytics** — TWR/MWR returns, cash-adjusted equity curve, sector heatmap, allocation donut, projected annual dividends.
 - **Watchlist** — symbols you don't own yet, with target-price distance tracking.
 - **Playground** — what-if backtests and DCA simulations with XIRR-based CAGR. Sandboxed: never touches your real stats.
+- **Predict** — an experimental XGBoost direction forecast (next day / next week) for any ticker, with per-user hit/miss tracking and an honest model card. Trained in Python, served by a pure-TypeScript tree evaluator; the research notebook lives in [`ml/`](ml/README.md).
 - **Live market data** — Finnhub (stocks/forex) + CoinGecko (crypto), server-side only, cached in Postgres, graceful `—` on failure.
 - **Shared feed** — sharing is opt-in per trade; everything else is private.
 
@@ -53,6 +54,8 @@ First time on a new machine? Follow **[docs/running-locally.md](docs/running-loc
 | [docs/data-model.md](docs/data-model.md)           | ER diagram, table semantics, trade/position lifecycles           |
 | [docs/market-data.md](docs/market-data.md)         | Provider routing, cache TTLs, free-tier limitations              |
 | [docs/portfolio-math.md](docs/portfolio-math.md)   | P&L, TWR/MWR, equity curve, Playground simulator math            |
+| [docs/ml-prediction.md](docs/ml-prediction.md)     | The /predict model: pipeline, Python↔TS parity, retraining       |
+| [ml/README.md](ml/README.md)                       | ML final project: Colab notebook, trainer, requirements.txt      |
 | [docs/testing.md](docs/testing.md)                 | Test battery, E2E setup, CI, platform gotchas                    |
 | [SETUP.md](SETUP.md)                               | Full provisioning walkthrough                                    |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                 | Branch/commit conventions, PR flow                               |
@@ -77,7 +80,7 @@ After a fresh database, also apply the manual SQL (Supabase SQL editor or psql):
 
 ## Testing & CI
 
-`npm test` runs 74 unit tests; CI (GitHub Actions) gates every PR on lint + typecheck + format + tests + build. The separate `npm audit` job is advisory (`continue-on-error`) and currently red pending the Next.js 16 major upgrade — see [docs/testing.md](docs/testing.md) for the full story.
+`npm test` runs 109 unit tests (including golden-vector parity checks that pin the TypeScript ML inference to the Python trainer); `npm run test:e2e` runs 11 Playwright specs. CI (GitHub Actions) gates every PR on lint + typecheck + format + tests + build. The separate `npm audit` job is advisory (`continue-on-error`) and currently red pending the Next.js 16 major upgrade — see [docs/testing.md](docs/testing.md) for the full story.
 
 ## Contributing
 
