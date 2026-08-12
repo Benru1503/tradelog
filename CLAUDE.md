@@ -6,11 +6,11 @@ TradeLog — a full-stack trading diary/logger for a small group of friends. Log
 
 ## Handoff to next session
 
-_Last updated 2026-07-19 (second session that day). The morning session's work (docs suite, test battery, e2e revival) is **committed and pushed** (`9b36b53..c3580f0`). The afternoon session shipped **Phase 5 — Predict**, the ML final-project feature (course PDF מסלול 2): trained XGBoost models, TS inference, `/predict` page, Colab notebook, tests, docs. **All Phase 5 work is uncommitted** — review + commit is the next step._
+_Last updated 2026-08-12. **Everything in the repo is committed and pushed; `main` is clean and CI-green.** This session was operational, not feature work: onboarded Shahar as a collaborator, restored the paused Supabase project, and — the significant part — **found and closed a live data-exposure hole** where the public anon key could read and TRUNCATE most tables (see below). Phase 5 — Predict is committed and on `main`._
 
 ### Where we are
 
-- **Phase 5 — Predict is fully built and browser-verified (uncommitted).** `/predict` serves XGBoost next-day/next-week direction calls for any ticker (crypto keyless golden path; stocks via Yahoo's keyless v8 endpoint), persists per-user predictions, lazily scores them HIT/MISS, and shows an honest model card. Live BTC D1+W1 flow driven in a real browser 2026-07-19 — result card, history rows, dedupe all verified (screenshots were in the session scratchpad).
+- **Phase 5 — Predict is fully built, browser-verified, and on `main`.** `/predict` serves XGBoost next-day/next-week direction calls for any ticker (crypto keyless golden path; stocks via Yahoo's keyless v8 endpoint), persists per-user predictions, lazily scores them HIT/MISS, and shows an honest model card. Live BTC D1+W1 flow driven in a real browser 2026-07-19 — result card, history rows, dedupe all verified (screenshots were in the session scratchpad).
 - **Supabase project restored by Ben on 2026-07-19** (it auto-paused after ~2.5 months idle; DNS was NXDOMAIN until restore). `/api/health` verified: DB answering, ~550ms from Idan's network. **Free-tier pause trap remains**: ~1 week of inactivity pauses it again — consider a weekly keep-alive hitting `/api/health` (now public) or upgrading the project.
 - **Playwright E2E is green: 11/11** (8 revived this morning + 3 new predict specs). `.env.local` present (gitignored), Chromium installed.
 - **Docs suite now exists**: `docs/` (architecture, data-model, market-data, portfolio-math, testing + index), README rewritten around it, SETUP.md refreshed, CHANGELOG corrected (Sentry / Vercel Analytics / HSTS were claimed but never integrated — now listed as Deferred).
@@ -19,10 +19,20 @@ _Last updated 2026-07-19 (second session that day). The morning session's work (
 - **RLS + Data API lockdown applied 2026-08-12** (`prisma/rls_policies.sql`, run via psql on `DIRECT_URL`). Context: Supabase grants `anon`/`authenticated` full table privileges on every new table in `public` by default, so each Prisma migration silently exposed its tables to the **public** anon key. Audit found 15 positions / 8 cash_flows / 7 watch_items / 6 predictions / 2 sim_snapshots readable — and TRUNCATE-able — by anyone holding that key. Fix: revoked all `anon`/`authenticated` privileges (this app has **zero** `supabase.from()` calls — Prisma-only, so the Data API is unused), enabled RLS on all 14 tables, added owner policies for the Phase 2–5 tables, rewrote every policy to `(select auth.uid())` and `TO authenticated`. Verified: anon gets 401 on every table; the app's `postgres` role has BYPASSRLS and is unaffected.
 - **`ALTER DEFAULT PRIVILEGES` is now set** so future Prisma-created tables don't re-open the hole — but re-run `prisma/rls_policies.sql` after any migration that adds a table, to enable RLS and add its policy.
 - Demo data is seeded on Ben's account via `scripts/seed-ben-demo.ts` — 15 trades, 8 cashflows, 8 tags, 4 watch items, 2 sim snapshots, 14 cached AssetSymbols with sectors, 2 trade revisions. Idempotent: gated by a `[demo]` marker in `notes`. To wipe: delete trades/cashflows where notes/note `contains "[demo]"`.
-- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` **109/109** pass (35 new ML tests), `prettier --check .` clean, production build clean, e2e **11/11**.
+- `npx tsc --noEmit` clean, `npx next lint` clean, `vitest` **109/109** pass (9 files), `prettier --check .` clean, production build clean, e2e **11/11**.
+- **Gotcha — vitest double-counts when a worktree exists.** With a git worktree under `.claude/worktrees/`, a bare `vitest run` from the repo root scans the nested copy too: it reports 20 files / 218 tests (each suite counted twice) plus 2 phantom "failed files" where it tries to load the Playwright specs. The real numbers are 9 files / 109 tests. Use `npx vitest run --exclude "**/.claude/**"` while a worktree is checked out, or trust the CI run.
 - CI is green on `main` for the build job. **The audit job is red and that's pre-existing**: 5 npm advisories (1 moderate, 4 high) all chained to Next.js — fix is `next@16.2.4`, a major-version upgrade. The workflow has `continue-on-error: true` on the audit step so it doesn't gate the run, but it does light up red in the UI and trigger failure emails.
 
-### What shipped this session (Phase 5 — Predict, 2026-07-19 afternoon — ALL UNCOMMITTED)
+### What shipped 2026-08-12 (security + collaborator onboarding — committed & pushed, PR #14 / `cff9acc`)
+
+1. **Closed a live data-exposure hole.** Supabase grants `anon`/`authenticated` full table privileges on every new table in `public` by default; Prisma creates its tables there, so every migration had been silently exposing them to the **public** anon key. Measured against production: anon could read 15 positions, 8 cash_flows, 7 watch_items, 6 predictions, 2 sim_snapshots, 142 asset_symbols — and held `TRUNCATE` on all of them. Not exploited (localhost-only, never deployed), but live. Fix in `prisma/rls_policies.sql`: revoked all `anon`/`authenticated` privileges, `ALTER DEFAULT PRIVILEGES` so future migrations can't reopen it (**verified empirically** with a throwaway table), RLS on all 14 tables, owner policies for the Phase 2–5 tables that never had any, every policy rewritten to `(select auth.uid())` + `TO authenticated`. Verified: anon gets 401 everywhere; app role has BYPASSRLS and is unaffected; no DML ran, row counts identical.
+2. **Migration `20260812000000_fk_indexes`** — indexes the two unindexed FKs (`trade_images.tradeId`, `trade_tags.tagId`). Applied to Supabase and on `main`.
+3. **Deliberately NOT actioned:** the advisor's two "Unused Index" warnings on `trades`. Every index there reports 0 scans _including `trades_pkey`_ — Postgres seq-scans a 16-row table regardless, so that stat measures table size, not index value.
+4. **Shahar onboarded** — `ShaharNavian`, write access, accepted. Sent the app credentials with `SUPABASE_SERVICE_ROLE_KEY` deliberately blank (so Settings→delete-account and the e2e teardown will fail for him; everything else works).
+5. **Supabase restored** after another free-tier pause (DNS was NXDOMAIN again). The ~1-week idle pause trap is still unmitigated.
+6. **Supabase↔GitHub integration: deliberately NOT enabled.** It expects `supabase/migrations/*.sql`; this repo is Prisma-managed with no `supabase/` dir, so it'd be inert now but would silently arm itself the day anyone runs `supabase init` — with "Deploy to production" wired to merges on `main`. Branching (the only real feature) is Pro-gated.
+
+### What shipped 2026-07-19 afternoon (Phase 5 — Predict; now committed)
 
 1. **Trained models** — `ml/train.py` (Python, plain-loop features mirrored 1:1 in TS): 14 assets (BTC/ETH + 12 stocks/ETFs), Yahoo v8 daily closes 2020→now, 23,812-row panel, 19 scale-free features, XGBoost d1 (441 trees) + w1 (66 trees), chronological split, early stopping. Honest metrics: test AUC ≈ 0.53, acc 51.7% vs 51.8% base. Backtest (long if p≥0.55, flat else, 10 bps): **BTC +9.7% vs −46.1% buy-hold** (sat out the crash), AAPL/SPY negative alpha — regime-dependent edge, stated as such in the UI.
 2. **Artifacts** — `src/lib/ml/artifacts/{model.d1,model.w1,meta}.json` (tree dumps + measured intercepts + metrics + backtest) and `tests/unit/fixtures/ml-goldens.json`. **These four regenerate together via `python ml/train.py` — never separately.**
@@ -48,9 +58,19 @@ _Last updated 2026-07-19 (second session that day). The morning session's work (
 
 ### Suggested first message of next session
 
-_"Review + commit/push the Phase 5 Predict work, then let's prep the course submission: run the notebook in Colab and check off the deliverables list."_
+_"Let's prep the course submission: run the notebook in Colab and check off the deliverables list."_
 
-Still open for the **course submission** (outside repo code): (a) someone runs `ml/tradelog_prediction.ipynb` in Colab top-to-bottom so the submitted copy has executed outputs; (b) the 5-page מסמך אפיון וסיכום PDF (problem, architecture, results, Risks & Caveats — `docs/ml-prediction.md` + notebook §11 are ready source material); (c) the 3–5 min demo video (`/predict` live + notebook backtest section is a natural script); (d) the survey (5% of the grade). Also still worth doing: browser-pass `/playground` per the checklist (never done — this session's manual pass covered `/predict` only), a weekly `/api/health` keep-alive for the Supabase pause trap, and running the updated `prisma/rls_policies.sql` in the Supabase SQL editor.
+**Nothing in the repo is half-finished.** `main` is clean, pushed, and CI-green on the build job. Pick up wherever you like.
+
+Still open for the **course submission** (outside repo code): (a) someone runs `ml/tradelog_prediction.ipynb` in Colab top-to-bottom so the submitted copy has executed outputs; (b) the 5-page מסמך אפיון וסיכום PDF (problem, architecture, results, Risks & Caveats — `docs/ml-prediction.md` + notebook §11 are ready source material); (c) the 3–5 min demo video (`/predict` live + notebook backtest section is a natural script); (d) the survey (5% of the grade).
+
+Smaller open items, none blocking:
+
+- **`PROJECT_PROPOSAL.he.pdf` is one word stale.** Prettier corrected `ב_שלוש_` → `ב*שלוש*` in the Hebrew markdown (underscore emphasis doesn't work intraword, so that word was rendering with literal underscores instead of italic). `scripts/md-to-pdf.mjs` only emits styled HTML — the PDFs come from a manual browser print, so both PDFs need regenerating before submission anyway.
+- **Leaked Password Protection** is still off in Supabase Auth. Dashboard toggle, not SQL. Near-moot — the app is Google-OAuth-only.
+- **Supabase free-tier pause trap** — ~1 week idle and it pauses (has bitten twice). A weekly cron hitting `/api/health` (public) would fix it.
+- Browser-pass `/playground` per the checklist — still never done.
+- **Next.js major upgrade** (14 → 16.x) for the 5 npm advisories. Needs its own session; the audit job stays red until then but is `continue-on-error`.
 
 ### What's left in the spec (not in any active phase)
 

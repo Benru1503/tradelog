@@ -21,9 +21,11 @@ const html = `<!doctype html>
   :root { --ink:#1a1d24; --muted:#5b6472; --line:#e3e6ea; --accent:#2f6df6; --soft:#f6f8fb; }
   * { box-sizing: border-box; }
   body {
-    font-family: ${rtl
-      ? '"Arial Hebrew","Heebo","Assistant",-apple-system,system-ui,sans-serif'
-      : '-apple-system,"Segoe UI",system-ui,Helvetica,Arial,sans-serif'};
+    font-family: ${
+      rtl
+        ? '"Arial Hebrew","Heebo","Assistant",-apple-system,system-ui,sans-serif'
+        : '-apple-system,"Segoe UI",system-ui,Helvetica,Arial,sans-serif'
+    };
     color: var(--ink); line-height: 1.6; font-size: 11.5pt; margin: 0;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }

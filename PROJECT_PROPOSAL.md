@@ -45,17 +45,17 @@ trade.**
 TradeLog is a private trading diary with the analytical depth of a portfolio
 tool. Planned capabilities:
 
-| Capability               | What it does                                                                 |
-| ------------------------ | ---------------------------------------------------------------------------- |
-| **Unified trade log**    | One journal for stocks, crypto, and forex — long or short, open or closed.   |
-| **Position tracking**    | Groups individual trade legs into positions, with averaged cost and realised P&L. |
-| **Honest performance**   | Time-weighted & money-weighted returns so deposits never masquerade as gains.|
-| **Analytics & charts**   | Equity curve, sector heatmap, allocation breakdown, and top movers.          |
-| **Market data**          | Live (delayed) prices and in-trade price charts, fetched securely server-side. |
-| **Watchlist**            | Track symbols you don't own yet, with optional target-price alerts.          |
-| **Reflection built in**  | Notes, tags, and screenshots attached to every trade — the learning layer.   |
-| **Scenario playground**  | "What-if" and dollar-cost-averaging simulators to test ideas risk-free.      |
-| **Privacy by default**   | Everything private unless you explicitly choose to share a trade with the group. |
+| Capability              | What it does                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| **Unified trade log**   | One journal for stocks, crypto, and forex — long or short, open or closed.        |
+| **Position tracking**   | Groups individual trade legs into positions, with averaged cost and realised P&L. |
+| **Honest performance**  | Time-weighted & money-weighted returns so deposits never masquerade as gains.     |
+| **Analytics & charts**  | Equity curve, sector heatmap, allocation breakdown, and top movers.               |
+| **Market data**         | Live (delayed) prices and in-trade price charts, fetched securely server-side.    |
+| **Watchlist**           | Track symbols you don't own yet, with optional target-price alerts.               |
+| **Reflection built in** | Notes, tags, and screenshots attached to every trade — the learning layer.        |
+| **Scenario playground** | "What-if" and dollar-cost-averaging simulators to test ideas risk-free.           |
+| **Privacy by default**  | Everything private unless you explicitly choose to share a trade with the group.  |
 
 The guiding principle: **P&L and returns are always computed, never hand-typed.**
 The journal is a source of truth, not a place to fudge the numbers.
