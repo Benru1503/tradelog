@@ -160,6 +160,9 @@ model TradeTag {
   tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([tradeId, tagId])
+  // The composite PK already covers tradeId; tagId needs its own index so the
+  // FK's ON DELETE CASCADE doesn't seq-scan when a Tag is removed.
+  @@index([tagId])
   @@map("trade_tags")
 }
 
@@ -172,6 +175,7 @@ model TradeImage {
 
   trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
 
+  @@index([tradeId])
   @@map("trade_images")
 }
 
