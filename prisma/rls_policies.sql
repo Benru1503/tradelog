@@ -54,6 +54,7 @@ ALTER TABLE cash_flows         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE watch_items        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sim_snapshots      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE predictions        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coach_reports      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE asset_symbols      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE asset_prices       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE _prisma_migrations ENABLE ROW LEVEL SECURITY;
@@ -152,6 +153,12 @@ CREATE POLICY sim_snapshots_owner ON sim_snapshots
 
 DROP POLICY IF EXISTS predictions_owner ON predictions;
 CREATE POLICY predictions_owner ON predictions
+  FOR ALL TO authenticated
+  USING ("userId" = (select auth.uid()))
+  WITH CHECK ("userId" = (select auth.uid()));
+
+DROP POLICY IF EXISTS coach_reports_owner ON coach_reports;
+CREATE POLICY coach_reports_owner ON coach_reports
   FOR ALL TO authenticated
   USING ("userId" = (select auth.uid()))
   WITH CHECK ("userId" = (select auth.uid()));

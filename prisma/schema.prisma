@@ -81,6 +81,7 @@ model User {
   watchItems   WatchItem[]
   simSnapshots SimSnapshot[]
   predictions  Prediction[]
+  coachReports CoachReport[]
 
   @@map("users")
 }
@@ -319,6 +320,27 @@ model Prediction {
   @@index([userId, createdAt])
   @@index([userId, resolvesAt])
   @@map("predictions")
+}
+
+// One LLM-generated coaching report over a snapshot of the user's history.
+// `facts` stores the exact deterministic payload the model was shown, so any
+// report can be audited against the numbers that produced it. `factsHash`
+// lets a rerun reuse an existing report when nothing has changed.
+model CoachReport {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  factsHash   String
+  facts       Json
+  report      Json
+  model       String
+  tradesCount Int
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, factsHash])
+  @@map("coach_reports")
 }
 
 // Latest-known price per symbol. Single row per symbol, overwritten on

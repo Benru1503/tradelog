@@ -7,6 +7,7 @@ import {
   BarChart3,
   FlaskConical,
   Sparkles,
+  MessageSquareHeart,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/analytics", label: "Analytics", icon: BarChart3 },
       { href: "/playground", label: "Playground", icon: FlaskConical },
       { href: "/predict", label: "Predict", icon: Sparkles },
+      { href: "/coach", label: "Coach", icon: MessageSquareHeart },
     ],
   },
   {
