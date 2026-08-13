@@ -14,6 +14,9 @@ import { generateCoachReport, hashFacts } from "@/lib/coach/report";
 import { isCoachConfigured } from "@/lib/coach/gemini";
 import type { CoachReportBody } from "@/lib/coach/schema";
 
+/** Per-user daily cap on Gemini calls. Reads of cached reports don't count. */
+const MAX_COACH_RUNS_PER_DAY = 10;
+
 export interface CoachReportDto {
   id: string;
   report: CoachReportBody;
@@ -92,6 +95,20 @@ export async function runCoachReport(force = false): Promise<CoachResponse> {
         },
       };
     }
+  }
+
+  // Signup is open, so anyone can reach this action. Each run spends real
+  // quota on a single shared Gemini key, and `force` deliberately skips the
+  // cache above — without a cap, one account could exhaust the day's quota
+  // and break the coach for everybody. Cached reads never reach here.
+  const runsToday = await prisma.coachReport.count({
+    where: { userId: user.id, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+  });
+  if (runsToday >= MAX_COACH_RUNS_PER_DAY) {
+    return {
+      ok: false,
+      error: `You've generated ${runsToday} reports in the last 24 hours. The coach is limited to ${MAX_COACH_RUNS_PER_DAY} a day — your existing reports are still below.`,
+    };
   }
 
   const generated = await generateCoachReport(facts);

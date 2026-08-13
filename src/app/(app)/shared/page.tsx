@@ -15,7 +15,10 @@ export default async function SharedPage() {
     orderBy: { exitDate: "desc" },
     take: 50,
     include: {
-      user: { select: { displayName: true, email: true, avatarUrl: true } },
+      // Deliberately no `email` — the shared feed is visible to every signed-in
+      // account, so an email here would publish it to strangers. Not selecting
+      // it at all means it can't be rendered by accident later.
+      user: { select: { displayName: true, avatarUrl: true } },
     },
   });
 
@@ -32,7 +35,7 @@ export default async function SharedPage() {
       ) : (
         <ul className="space-y-4">
           {shared.map((t) => {
-            const author = t.user.displayName ?? t.user.email;
+            const author = t.user.displayName?.trim() || "A trader";
             const dateLabel = (t.exitDate ?? t.entryDate).toISOString().slice(0, 10);
             return (
               <li
