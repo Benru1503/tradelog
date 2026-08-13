@@ -4,6 +4,7 @@
 | ---------------------------------------- | -------------------------------------------------------------------------- |
 | [prerequisites.md](prerequisites.md)     | What to install/verify on a machine before touching the project            |
 | [running-locally.md](running-locally.md) | Step-by-step from clone to running app, with troubleshooting               |
+| [deploying.md](deploying.md)             | Vercel deploy: env vars, OAuth wiring, and what open signup exposes        |
 | [architecture.md](architecture.md)       | The big picture: auth flow, route map, server actions, design decisions    |
 | [data-model.md](data-model.md)           | Every table, the trade/position lifecycles, cash-flow semantics            |
 | [market-data.md](market-data.md)         | Provider routing, caching TTLs, free-tier limits, adding a provider        |
