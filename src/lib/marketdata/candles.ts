@@ -7,7 +7,7 @@
 // "Historical chart unavailable" message instead of crashing.
 
 import type { AssetSymbol } from "@prisma/client";
-import { finnhubProvider } from "./providers/finnhub";
+import { yahooProvider } from "./providers/yahoo";
 import { coingeckoProvider } from "./providers/coingecko";
 
 export interface Candle {
@@ -23,23 +23,16 @@ export interface CandleRange {
   to: Date;
 }
 
-// Same logic as `cache.ts:lookupKeyFor` — kept inline rather than re-exported
-// so the two files stay independent. Crypto and forex carry the provider's
-// real lookup id in `exchange`; stocks quote against the bare ticker.
-function lookupKey(symbol: AssetSymbol): string {
-  if ((symbol.assetType === "CRYPTO" || symbol.assetType === "FOREX") && symbol.exchange) {
-    return symbol.exchange;
-  }
-  return symbol.symbol;
-}
-
 export async function getCandles(
   symbol: AssetSymbol,
   range: CandleRange,
 ): Promise<Candle[] | null> {
-  const key = lookupKey(symbol);
   if (symbol.assetType === "CRYPTO") {
-    return coingeckoProvider.getCandles(key, range);
+    // CoinGecko's coin id ("bitcoin"), not the display ticker.
+    return coingeckoProvider.getCandles(symbol.exchange ?? symbol.symbol, range);
   }
-  return finnhubProvider.getCandles(key, symbol.assetType, range);
+  // Yahoo, not Finnhub: Finnhub's free tier doesn't serve historical
+  // /stock/candle or /forex/candle at all. Yahoo wants the bare display
+  // symbol ("AAPL", "EUR/USD") — it does its own forex reformatting.
+  return yahooProvider.getCandles(symbol.symbol, symbol.assetType, range);
 }

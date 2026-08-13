@@ -1,6 +1,5 @@
 import type { AssetType } from "@prisma/client";
 import type { Quote, SymbolSearchResult } from "../client";
-import type { Candle } from "../candles";
 
 const FINNHUB_BASE = "https://finnhub.io/api/v1";
 const TIMEOUT_MS = 5000;
@@ -125,45 +124,5 @@ export const finnhubProvider = {
     // Finnhub returns `c: 0` for unknown symbols rather than a 404.
     if (!data || !data.c) return null;
     return { price: data.c, changePct: data.dp ?? null };
-  },
-
-  // Daily OHLC candles for a stock or forex pair.
-  // Note: `/stock/candle` and `/forex/candle` are gated to Finnhub paid tiers.
-  // On free tier this returns null and the UI falls back to "Historical chart unavailable".
-  async getCandles(
-    providerSymbol: string,
-    assetType: AssetType,
-    range: { from: Date; to: Date },
-  ): Promise<Candle[] | null> {
-    const k = apiKey();
-    if (!k) return null;
-    const path = assetType === "FOREX" ? "/forex/candle" : "/stock/candle";
-    const url = new URL(`${FINNHUB_BASE}${path}`);
-    url.searchParams.set("symbol", providerSymbol);
-    url.searchParams.set("resolution", "D");
-    url.searchParams.set("from", String(Math.floor(range.from.getTime() / 1000)));
-    url.searchParams.set("to", String(Math.floor(range.to.getTime() / 1000)));
-    url.searchParams.set("token", k);
-    const res = await safeFetch(url);
-    if (!res) return null;
-    const data = (await res.json().catch(() => null)) as {
-      c?: number[];
-      h?: number[];
-      l?: number[];
-      o?: number[];
-      t?: number[];
-      s?: string;
-    } | null;
-    if (!data || data.s !== "ok" || !data.t?.length) return null;
-    const candles: Candle[] = [];
-    for (let i = 0; i < data.t.length; i++) {
-      const o = data.o?.[i],
-        h = data.h?.[i],
-        l = data.l?.[i],
-        c = data.c?.[i];
-      if (o == null || h == null || l == null || c == null) continue;
-      candles.push({ time: data.t[i]!, open: o, high: h, low: l, close: c });
-    }
-    return candles.length > 0 ? candles : null;
   },
 };

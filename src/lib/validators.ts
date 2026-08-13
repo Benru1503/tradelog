@@ -94,6 +94,12 @@ export const tickerSearchSchema = z.object({
 });
 export type TickerSearchInput = z.infer<typeof tickerSearchSchema>;
 
+export const firstTradeDateSchema = z.object({
+  symbol: z.string().trim().min(1).max(40),
+  assetType,
+});
+export type FirstTradeDateInput = z.infer<typeof firstTradeDateSchema>;
+
 // /playground — what-if scenario. `sellDate` is optional; when omitted we
 // run the scenario through to "now" using the latest available candle.
 export const whatIfFormSchema = z

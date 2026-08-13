@@ -37,9 +37,43 @@ export function WhatIfPanel() {
   const [savingSnapshot, startSaving] = useTransition();
   const [assetType, setAssetType] = useState<AssetType>("CRYPTO");
   const [sellToday, setSellToday] = useState(true);
+  const [buyDate, setBuyDate] = useState(defaultBuyDate());
+  const [sellDate, setSellDate] = useState(todayISO());
+  // Earliest date this symbol has history for (null = unrestricted, e.g.
+  // crypto or before a ticker's been picked). Caps the date-picker inputs so
+  // users can't pick, say, 1800 for a stock that IPO'd decades later.
+  const [minDate, setMinDate] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [result, setResult] = useState<SuccessResponse | null>(null);
+
+  function handleAssetTypeChange(next: AssetType) {
+    setAssetType(next);
+    // Stale from the previous symbol — refreshed on the next ticker pick.
+    setMinDate(null);
+  }
+
+  async function handleTickerSelect(hit: { symbol: string; assetType: AssetType }) {
+    if (hit.assetType === "CRYPTO") {
+      setMinDate(null);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({ symbol: hit.symbol, assetType: hit.assetType });
+      const res = await fetch(`/api/tickers/first-trade-date?${params.toString()}`);
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok: boolean; firstTradeDate: string | null };
+      if (!data.ok) return;
+      setMinDate(data.firstTradeDate);
+      const floor = data.firstTradeDate;
+      if (floor) {
+        setBuyDate((d) => (d < floor ? floor : d));
+        setSellDate((d) => (d < floor ? floor : d));
+      }
+    } catch {
+      // Network hiccup — leave the picker unrestricted rather than block the form.
+    }
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -98,7 +132,7 @@ export function WhatIfPanel() {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle>What if</CardTitle>
           <span className="text-[11px] text-fg-subtle">
-            Crypto works keyless · stocks/forex need a paid Finnhub tier
+            Crypto, stocks & forex all work keyless
           </span>
         </div>
       </CardHeader>
@@ -117,7 +151,7 @@ export function WhatIfPanel() {
               id="wi-type"
               name="assetType"
               value={assetType}
-              onChange={(e) => setAssetType(e.target.value as AssetType)}
+              onChange={(e) => handleAssetTypeChange(e.target.value as AssetType)}
             >
               <option value="CRYPTO">Crypto</option>
               <option value="STOCK">Stock</option>
@@ -126,7 +160,13 @@ export function WhatIfPanel() {
           </div>
           <div className="sm:col-span-2">
             <Label htmlFor="wi-asset">Asset</Label>
-            <TickerAutocomplete id="wi-asset" name="asset" assetType={assetType} required />
+            <TickerAutocomplete
+              id="wi-asset"
+              name="asset"
+              assetType={assetType}
+              required
+              onSelect={handleTickerSelect}
+            />
             {fieldError("asset") && <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>}
           </div>
         </div>
@@ -153,7 +193,9 @@ export function WhatIfPanel() {
               id="wi-buy-date"
               name="buyDate"
               type="date"
-              defaultValue={defaultBuyDate()}
+              value={buyDate}
+              onChange={(e) => setBuyDate(e.target.value)}
+              min={minDate ?? undefined}
               max={todayISO()}
               required
             />
@@ -168,7 +210,9 @@ export function WhatIfPanel() {
                 id="wi-sell-date"
                 name="sellDate"
                 type="date"
-                defaultValue={todayISO()}
+                value={sellDate}
+                onChange={(e) => setSellDate(e.target.value)}
+                min={minDate ?? undefined}
                 max={todayISO()}
                 disabled={sellToday}
               />

@@ -32,9 +32,43 @@ export function DcaPanel() {
   const [savingSnapshot, startSaving] = useTransition();
   const [assetType, setAssetType] = useState<AssetType>("CRYPTO");
   const [endToday, setEndToday] = useState(true);
+  const [fromDate, setFromDate] = useState(defaultFromDate());
+  const [toDate, setToDate] = useState(todayISO());
+  // Earliest date this symbol has history for (null = unrestricted, e.g.
+  // crypto or before a ticker's been picked). Caps the date-picker inputs so
+  // users can't pick, say, 1800 for a stock that IPO'd decades later.
+  const [minDate, setMinDate] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [result, setResult] = useState<SuccessResponse | null>(null);
+
+  function handleAssetTypeChange(next: AssetType) {
+    setAssetType(next);
+    // Stale from the previous symbol — refreshed on the next ticker pick.
+    setMinDate(null);
+  }
+
+  async function handleTickerSelect(hit: { symbol: string; assetType: AssetType }) {
+    if (hit.assetType === "CRYPTO") {
+      setMinDate(null);
+      return;
+    }
+    try {
+      const params = new URLSearchParams({ symbol: hit.symbol, assetType: hit.assetType });
+      const res = await fetch(`/api/tickers/first-trade-date?${params.toString()}`);
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok: boolean; firstTradeDate: string | null };
+      if (!data.ok) return;
+      setMinDate(data.firstTradeDate);
+      const floor = data.firstTradeDate;
+      if (floor) {
+        setFromDate((d) => (d < floor ? floor : d));
+        setToDate((d) => (d < floor ? floor : d));
+      }
+    } catch {
+      // Network hiccup — leave the picker unrestricted rather than block the form.
+    }
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -76,7 +110,7 @@ export function DcaPanel() {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle>Dollar-cost average</CardTitle>
           <span className="text-[11px] text-fg-subtle">
-            Crypto works keyless · stocks/forex need a paid Finnhub tier
+            Crypto, stocks & forex all work keyless
           </span>
         </div>
       </CardHeader>
@@ -95,7 +129,7 @@ export function DcaPanel() {
               id="dca-type"
               name="assetType"
               value={assetType}
-              onChange={(e) => setAssetType(e.target.value as AssetType)}
+              onChange={(e) => handleAssetTypeChange(e.target.value as AssetType)}
             >
               <option value="CRYPTO">Crypto</option>
               <option value="STOCK">Stock</option>
@@ -104,7 +138,13 @@ export function DcaPanel() {
           </div>
           <div className="sm:col-span-2">
             <Label htmlFor="dca-asset">Asset</Label>
-            <TickerAutocomplete id="dca-asset" name="asset" assetType={assetType} required />
+            <TickerAutocomplete
+              id="dca-asset"
+              name="asset"
+              assetType={assetType}
+              required
+              onSelect={handleTickerSelect}
+            />
             {fieldError("asset") && <p className="text-xs text-loss mt-1">{fieldError("asset")}</p>}
           </div>
         </div>
@@ -138,7 +178,9 @@ export function DcaPanel() {
               id="dca-from"
               name="from"
               type="date"
-              defaultValue={defaultFromDate()}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              min={minDate ?? undefined}
               max={todayISO()}
               required
             />
@@ -150,7 +192,9 @@ export function DcaPanel() {
               id="dca-to"
               name="to"
               type="date"
-              defaultValue={todayISO()}
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              min={minDate ?? undefined}
               max={todayISO()}
               disabled={endToday}
             />

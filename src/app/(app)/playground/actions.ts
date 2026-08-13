@@ -77,7 +77,7 @@ export async function runWhatIf(formData: FormData): Promise<WhatIfResponse> {
   if (!candles || candles.length === 0) {
     const tip =
       parsed.data.assetType === "STOCK" || parsed.data.assetType === "FOREX"
-        ? "Finnhub's free tier doesn't expose historical candles for stocks/forex. Try a crypto ticker."
+        ? "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range."
         : "Provider didn't return any history for this range.";
     return { ok: false, error: `Historical data unavailable. ${tip}` };
   }
@@ -184,7 +184,7 @@ export async function runDca(formData: FormData): Promise<DcaResponse> {
   if (!candles || candles.length === 0) {
     const tip =
       parsed.data.assetType === "STOCK" || parsed.data.assetType === "FOREX"
-        ? "Finnhub's free tier doesn't expose historical candles for stocks/forex. Try a crypto ticker."
+        ? "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range."
         : "Provider didn't return any history for this range. CoinGecko's free tier caps daily history at ~1 year.";
     return { ok: false, error: `Historical data unavailable. ${tip}` };
   }
