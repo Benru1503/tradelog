@@ -3,6 +3,17 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
+// Mirrors the encodeURIComponent() in middleware.ts — header values are
+// Latin-1 only, so a non-ASCII display name is percent-encoded on the way in.
+function decodeHeaderValue(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 // React's cache() dedupes within a single request — layout, page, and any
 // server actions in the same render all share one DB roundtrip instead of
 // each doing their own.
@@ -25,7 +36,7 @@ export const requireUser = cache(async () => {
     create: {
       id: userId,
       email: h.get("x-user-email") ?? "",
-      displayName: h.get("x-user-name") ?? null,
+      displayName: decodeHeaderValue(h.get("x-user-name")),
       avatarUrl: h.get("x-user-avatar") ?? null,
     },
   });

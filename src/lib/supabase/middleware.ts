@@ -81,7 +81,10 @@ export async function updateSession(request: NextRequest) {
       (user.user_metadata?.full_name as string | undefined) ??
       (user.user_metadata?.name as string | undefined) ??
       "";
-    if (name) requestHeaders.set("x-user-name", name);
+    // Header values must be Latin-1 (ByteString) — encode before setting so a
+    // non-ASCII display name (e.g. Hebrew, CJK, emoji) doesn't throw and take
+    // down every request. auth.ts decodes it back on the way out.
+    if (name) requestHeaders.set("x-user-name", encodeURIComponent(name));
     const avatar = user.user_metadata?.avatar_url as string | undefined;
     if (avatar) requestHeaders.set("x-user-avatar", avatar);
 
