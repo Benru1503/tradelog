@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         ← Home
       </Link>
       <h1>Privacy Policy</h1>
-      <p className="text-sm text-fg-muted">Last updated: 2026-04-27</p>
+      <p className="text-sm text-fg-muted">Last updated: 2026-08-13</p>
 
       <p>
         TradeLog is a private trading journal used by a small group of friends. This page describes
@@ -37,17 +37,52 @@ export default function PrivacyPage() {
           <strong>Auth cookies.</strong> Supabase sets cookies on your browser so you stay signed
           in. Sign out from settings to clear them.
         </li>
+      </ul>
+
+      <h2>Third-party services</h2>
+      <p>
+        TradeLog is not self-contained. These services receive some of your data in the course of
+        running the app:
+      </p>
+      <ul>
         <li>
-          <strong>Error and performance data.</strong> If the app crashes for you, Sentry receives a
-          stack trace and your user ID. We use this only to fix bugs.
+          <strong>Supabase</strong> (EU, Frankfurt) hosts the database and handles sign-in. All
+          trades, notes, and account details are stored there.
+        </li>
+        <li>
+          <strong>Market data providers</strong> (Finnhub, CoinGecko, Yahoo Finance) receive the
+          ticker symbols you search for or hold, so we can fetch prices and charts. They do not
+          receive your position sizes, P&amp;L, or notes. These requests are made from our server,
+          never from your browser.
+        </li>
+        <li>
+          <strong>Google Gemini</strong> — only if you use the <Link href="/coach">Coach</Link>, and
+          only when you press the button to generate a report. It is never called automatically. See
+          below for exactly what is sent.
         </li>
       </ul>
 
+      <h2>The Coach and your journal</h2>
+      <p>
+        The Coach reviews your trading history using Google&apos;s Gemini model. When you run it, we
+        send a computed summary of your account: asset names, profit and loss figures, trade dates,
+        tag names, and <strong>excerpts of the free-text notes you wrote on your trades</strong>.
+        Your email, name, and avatar are not included.
+      </p>
+      <p>
+        The project currently uses Google&apos;s free API tier. On that tier, Google may use
+        submitted content to improve their products, which can include human review. If you would
+        rather your journal notes never leave this app, simply do not use the Coach — every other
+        feature works without it.
+      </p>
+
       <h2>What we do not do</h2>
       <ul>
-        <li>We do not sell or share your data with anyone.</li>
+        <li>We do not sell your data, ever.</li>
+        <li>We do not share it with anyone beyond the services listed above.</li>
         <li>We do not run third-party advertising trackers.</li>
         <li>We do not have access to your brokerage accounts — you enter trades manually.</li>
+        <li>We do not use error-tracking or analytics services.</li>
       </ul>
 
       <h2>Your rights</h2>
