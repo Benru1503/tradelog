@@ -67,14 +67,14 @@ export const GEMINI_RESPONSE_SCHEMA = {
           observation: {
             type: "STRING",
             description:
-              "What the data shows. Quote the exact figures from the facts payload. 2-4 sentences.",
+              "What the data shows, in plain English a non-technical trader can read. Use the exact numeric values from the facts payload, formatted for a human (currency as $1,234.56, percentages as 12.3%, ratios as 1.23×) — never the payload's raw field name (e.g. avgNotionalLosers). Describe what each number means instead of naming its key. 2-4 sentences.",
           },
           evidence: {
             type: "ARRAY",
             maxItems: 4,
             items: { type: "STRING" },
             description:
-              "Short factual citations copied verbatim from the payload, e.g. 'avgLoss: -412.5'.",
+              "Short human-readable citations: a plain-English label plus the formatted number, e.g. 'Average loss: $412.50' or 'Win rate: 51.7%'. Never the payload's raw field name (e.g. avgLoss, winRatePct) — a trader reading this has never seen the payload and the key names mean nothing to them.",
           },
           suggestion: {
             type: "STRING",
