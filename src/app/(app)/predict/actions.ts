@@ -10,10 +10,18 @@ import { fetchDailyHistory } from "@/lib/ml/history";
 import { computeLatestFeatures, MIN_BARS } from "@/lib/ml/features";
 import { MODEL_META, predictPUp } from "@/lib/ml/model";
 import { confidence, decideDirection, resolveTime, utcDayStart } from "@/lib/ml/lifecycle";
+import { rateLimit } from "@/lib/rate-limit";
 
 // A little margin over the hard MIN_BARS floor so one venue gap doesn't
 // flip a symbol between "works" and "not enough history" day to day.
 const REQUIRED_BARS = MIN_BARS + 10;
+
+// Two layers, because they stop different things. The per-minute window stops
+// a loop; the daily cap bounds how many distinct symbols one account can pull
+// history for. Reruns of the same symbol/horizon dedupe to the existing row
+// without a provider call, so they do not count against the daily figure.
+const PREDICTIONS_PER_MINUTE = 10;
+const PREDICTIONS_PER_DAY = 40;
 
 export interface PredictionDto {
   id: string;
@@ -51,6 +59,21 @@ export async function runPrediction(formData: FormData): Promise<PredictResponse
       ok: false,
       error: "Please correct the errors below.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const burst = rateLimit(`predict:${user.id}`, PREDICTIONS_PER_MINUTE, 60_000);
+  if (!burst.ok) {
+    return { ok: false, error: "That's a lot of predictions at once — give it a minute." };
+  }
+
+  const madeToday = await prisma.prediction.count({
+    where: { userId: user.id, createdAt: { gte: utcDayStart(new Date()) } },
+  });
+  if (madeToday >= PREDICTIONS_PER_DAY) {
+    return {
+      ok: false,
+      error: `You've made ${madeToday} predictions today. The daily limit is ${PREDICTIONS_PER_DAY} — your existing calls still resolve as normal.`,
     };
   }
 

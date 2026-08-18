@@ -4,13 +4,27 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { tickerSearchSchema } from "@/lib/validators";
 import { getMarketDataProvider } from "@/lib/marketdata/client";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/tickers/search?q=AAPL[&assetType=STOCK]
 // Returns up to 10 ticker matches by combining the local AssetSymbol cache
 // with the configured market-data provider. Provider results are folded into
 // the cache so subsequent searches are fast.
+// The autocomplete debounces, so a human types well under this. It exists to
+// stop a script from spending the one shared Finnhub key everyone is on.
+const SEARCHES_PER_MINUTE = 60;
+
 export async function GET(req: Request) {
-  await requireUser();
+  const user = await requireUser();
+
+  const limit = rateLimit(`tickers:search:${user.id}`, SEARCHES_PER_MINUTE, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { ok: false, error: "Too many searches — give it a moment." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   const url = new URL(req.url);
   const parsed = tickerSearchSchema.safeParse({
     q: url.searchParams.get("q") ?? "",

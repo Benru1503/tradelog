@@ -103,5 +103,10 @@ Anyone with a Google account can register. What that means concretely:
 - **`/coach` is capped at 10 generations per user per rolling 24 hours**, because
   every install shares one Gemini key and the `force` path skips the cache.
 - **Finnhub is one 60-req/min key shared by all users.** A 15-minute cache
-  absorbs most of it, but heavy signup traffic will degrade quotes for everyone.
-  That is the first thing to watch if the app gets popular.
+  absorbs most of it, and `src/lib/rate-limit.ts` caps ticker search at 60/min
+  and first-trade-date lookups at 30/min per user. That limiter is per-instance
+  and best-effort by design — it stops a runaway client, not a distributed one.
+  Sustained signup traffic degrading quotes for everyone is still the first
+  thing to watch if the app gets popular.
+- **`/predict` is capped at 10 runs/minute and 40/day per user.** Reruns of the
+  same symbol and horizon dedupe to the existing row and do not count.
