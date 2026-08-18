@@ -8,6 +8,11 @@ import { isCoachConfigured } from "@/lib/coach/gemini";
 import { coachReportSchema } from "@/lib/coach/schema";
 import type { CoachReportDto } from "./actions";
 
+// A coach report is one long Gemini generation plus up to two retries. The
+// platform default (10s on Vercel) kills that mid-flight; 60s is the Hobby
+// ceiling and comfortably above the client's own 55s budget.
+export const maxDuration = 60;
+
 export default async function CoachPage() {
   const user = await requireUser();
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildCoachFacts } from "@/lib/coach/facts";
 import { hashFacts } from "@/lib/coach/report";
 import { coachReportSchema, GEMINI_RESPONSE_SCHEMA } from "@/lib/coach/schema";
+import { isRetryableStatus } from "@/lib/coach/gemini";
 
 function validReport() {
   return {
@@ -114,5 +115,22 @@ describe("GEMINI_RESPONSE_SCHEMA", () => {
       report.findings[0].category = c;
       expect(coachReportSchema.safeParse(report).success).toBe(true);
     }
+  });
+});
+
+describe("isRetryableStatus", () => {
+  it("retries Google-side capacity failures", () => {
+    expect(isRetryableStatus(503)).toBe(true);
+    expect(isRetryableStatus(500)).toBe(true);
+    expect(isRetryableStatus(502)).toBe(true);
+    expect(isRetryableStatus(504)).toBe(true);
+  });
+
+  it("does not retry quota, auth, or a stale model name", () => {
+    // 429 is quota — retrying makes it worse, not better.
+    expect(isRetryableStatus(429)).toBe(false);
+    expect(isRetryableStatus(403)).toBe(false);
+    expect(isRetryableStatus(400)).toBe(false);
+    expect(isRetryableStatus(404)).toBe(false);
   });
 });
