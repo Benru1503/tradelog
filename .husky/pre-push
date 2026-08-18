@@ -1,0 +1,16 @@
+# Mirrors the fast gates of the CI build job — about 12 seconds in total.
+# `next build` is the only CI step not repeated here; it takes minutes and
+# rarely fails once these four pass.
+#
+# Why pre-push rather than pre-commit: lint-staged already handles staged
+# files at commit time, but these are repo-wide checks. The gap that made this
+# hook necessary was a test file using `afterEach` without importing it —
+# vitest runs with globals:true so the suite passed, eslint and prettier were
+# happy, and only `tsc --noEmit` caught it. That reached main and failed CI
+# three times (c762d0f).
+set -e
+
+npm run typecheck
+npm run format:check
+npm run lint
+npm test

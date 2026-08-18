@@ -70,3 +70,19 @@ Automated tests cannot exercise live providers, so after touching market-data, P
 7. `/predict` → BTC quick-pick, Next day → UP/DOWN card with confidence %, reference close, and "About this model" metrics; row appears in history with a "Scores <date>" pill.
 8. `/predict` → same symbol, Next week → second row; rerun Next day → "already ran this one today" note, still only two rows (dedupe).
 9. `/predict` → a **stock** ticker (e.g. AAPL) → either a real prediction (Yahoo daily history is keyless) or the graceful "Historical data unavailable" message — never a crash. _(Last full pass: 2026-07-19, all green — live BTC D1+W1 verified end-to-end.)_
+
+## Pre-push hook
+
+`.husky/pre-push` runs the CI build job's fast gates before every push —
+`typecheck`, `format:check`, `lint`, and the unit suite, roughly 12 seconds.
+`next build` is deliberately not repeated; it takes minutes and rarely fails
+once the other four pass.
+
+It exists because of a specific gap. Vitest runs with `globals: true`, so a
+test file can use `afterEach` without importing it and the suite still passes;
+eslint and prettier are equally happy. Only `tsc --noEmit` catches it, and that
+is the one gate easy to skip locally after editing a test. It reached `main`
+and failed CI three times before anyone noticed.
+
+Bypass with `git push --no-verify` when you genuinely need to (pushing a
+work-in-progress branch for someone else to look at, for instance).
