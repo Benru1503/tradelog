@@ -2,7 +2,12 @@ import { describe, it, expect } from "vitest";
 import { buildCoachFacts } from "@/lib/coach/facts";
 import { hashFacts } from "@/lib/coach/report";
 import { coachReportSchema, GEMINI_RESPONSE_SCHEMA } from "@/lib/coach/schema";
-import { isRetryableStatus } from "@/lib/coach/gemini";
+import {
+  DEFAULT_FALLBACK_MODEL,
+  DEFAULT_MODEL,
+  isRetryableStatus,
+  modelChain,
+} from "@/lib/coach/gemini";
 
 function validReport() {
   return {
@@ -132,5 +137,31 @@ describe("isRetryableStatus", () => {
     expect(isRetryableStatus(403)).toBe(false);
     expect(isRetryableStatus(400)).toBe(false);
     expect(isRetryableStatus(404)).toBe(false);
+  });
+});
+
+describe("modelChain", () => {
+  const saved = { model: process.env.GEMINI_MODEL, fallback: process.env.GEMINI_FALLBACK_MODEL };
+  afterEach(() => {
+    process.env.GEMINI_MODEL = saved.model;
+    process.env.GEMINI_FALLBACK_MODEL = saved.fallback;
+  });
+
+  it("puts a second, differently-pooled model behind the default", () => {
+    delete process.env.GEMINI_MODEL;
+    delete process.env.GEMINI_FALLBACK_MODEL;
+    expect(modelChain()).toEqual([DEFAULT_MODEL, DEFAULT_FALLBACK_MODEL]);
+  });
+
+  it("keeps the fallback behind a pinned model, which is what rescues a retired snapshot", () => {
+    process.env.GEMINI_MODEL = "gemini-2.5-flash";
+    delete process.env.GEMINI_FALLBACK_MODEL;
+    expect(modelChain()).toEqual(["gemini-2.5-flash", DEFAULT_FALLBACK_MODEL]);
+  });
+
+  it("does not ask the same model twice", () => {
+    process.env.GEMINI_MODEL = "same-model";
+    process.env.GEMINI_FALLBACK_MODEL = "same-model";
+    expect(modelChain()).toEqual(["same-model"]);
   });
 });

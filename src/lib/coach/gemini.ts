@@ -20,6 +20,24 @@ const ENDPOINT_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 /** Overridable so a specific pinned Flash model can be swapped in without a code change. */
 export const DEFAULT_MODEL = "gemini-flash-latest";
 
+// Retrying an overloaded model three times still asks the same busy pool. A
+// different model is a different pool, so when the primary is exhausted we ask
+// a second one before giving up. Only reached after the primary has already
+// failed, so a fallback that doesn't exist for a given key costs nothing —
+// the primary's error is what surfaces.
+export const DEFAULT_FALLBACK_MODEL = "gemini-flash-lite-latest";
+
+/**
+ * Models to try, in order, without duplicates. A pinned GEMINI_MODEL still
+ * gets the fallback behind it, which also rescues the case where the pinned
+ * snapshot has been retired (404) — the failure mode docs/coach.md warns about.
+ */
+export function modelChain(): string[] {
+  const primary = coachModel();
+  const fallback = process.env.GEMINI_FALLBACK_MODEL?.trim() || DEFAULT_FALLBACK_MODEL;
+  return primary === fallback ? [primary] : [primary, fallback];
+}
+
 // Reports are a single long generation, not a quick quote lookup. The whole
 // call — retries included — has to finish inside the hosting platform's
 // function limit (60s on Vercel Hobby, set via `maxDuration` on the coach
@@ -88,7 +106,33 @@ export async function generateJson(opts: GenerateOptions): Promise<GeminiResult>
     };
   }
 
-  const model = coachModel();
+  const startedAt = Date.now();
+  const chain = modelChain();
+  let firstFailure: GeminiResult | null = null;
+
+  for (const model of chain) {
+    const result = await generateWithModel(apiKey, model, opts, startedAt);
+    if (result.ok) return result;
+    // A fatal error means the next model would fail identically — bad key,
+    // quota, blocked content. Only capacity and staleness are worth retrying
+    // against a different pool.
+    if (!result.retryWithAnotherModel) return result.result;
+    firstFailure ??= result.result;
+  }
+
+  return firstFailure ?? { ok: false, error: "Gemini didn't respond. Press Regenerate to retry." };
+}
+
+type ModelAttempt =
+  | { ok: true; text: string; model: string }
+  | { ok: false; result: GeminiResult; retryWithAnotherModel: boolean };
+
+async function generateWithModel(
+  apiKey: string,
+  model: string,
+  opts: GenerateOptions,
+  startedAt: number,
+): Promise<ModelAttempt> {
   const body = {
     systemInstruction: { parts: [{ text: opts.systemInstruction }] },
     contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
@@ -100,7 +144,17 @@ export async function generateJson(opts: GenerateOptions): Promise<GeminiResult>
     },
   };
 
-  const startedAt = Date.now();
+  const fatal = (error: string): ModelAttempt => ({
+    ok: false,
+    result: { ok: false, error },
+    retryWithAnotherModel: false,
+  });
+  const transient = (error: string): ModelAttempt => ({
+    ok: false,
+    result: { ok: false, error },
+    retryWithAnotherModel: true,
+  });
+
   let lastTransientError = "";
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -117,58 +171,45 @@ export async function generateJson(opts: GenerateOptions): Promise<GeminiResult>
         cache: "no-store",
       });
     } catch {
-      // Network blip or attempt timeout. Worth one more go if the budget allows.
       lastTransientError = "Couldn't reach Gemini (network error or timeout).";
       if (await backOff(attempt, startedAt)) continue;
-      return { ok: false, error: `${lastTransientError} Try again.` };
+      return transient(`${lastTransientError} Try again.`);
     }
 
     let data: GeminiResponse;
     try {
       data = (await res.json()) as GeminiResponse;
     } catch {
-      return { ok: false, error: `Gemini returned an unreadable response (HTTP ${res.status}).` };
+      return fatal(`Gemini returned an unreadable response (HTTP ${res.status}).`);
     }
 
     if (!res.ok) {
       const detail = data.error?.message ?? `HTTP ${res.status}`;
       if (res.status === 429) {
-        return {
-          ok: false,
-          error: "Gemini free-tier rate limit reached. Wait a minute and try again.",
-        };
+        return fatal("Gemini free-tier rate limit reached. Wait a minute and try again.");
       }
       if (res.status === 400 || res.status === 403) {
-        return {
-          ok: false,
-          error: `Gemini rejected the request — check GEMINI_API_KEY. (${detail})`,
-        };
+        return fatal(`Gemini rejected the request — check GEMINI_API_KEY. (${detail})`);
       }
       if (res.status === 404) {
-        // Usually a stale pinned snapshot (e.g. "gemini-2.5-flash" was
-        // deprecated for new accounts even though ListModels still lists it) —
-        // not a bad key. Google's error message says so directly.
-        return {
-          ok: false,
-          error: `Model "${model}" isn't available for this key (${detail}). If you set GEMINI_MODEL, try "gemini-flash-latest" or unset it to use the default.`,
-        };
+        // A retired snapshot. Worth trying the next model in the chain, which
+        // is exactly the case docs/coach.md warns about when pinning.
+        return transient(
+          `Model "${model}" isn't available for this key (${detail}). If you set GEMINI_MODEL, try "gemini-flash-latest" or unset it to use the default.`,
+        );
       }
       if (isRetryableStatus(res.status)) {
         lastTransientError = detail;
         if (await backOff(attempt, startedAt)) continue;
-        return {
-          ok: false,
-          error: `Gemini is overloaded on Google's side right now — tried ${attempt + 1} time${attempt ? "s" : ""}. Wait a moment and press Regenerate. (${detail})`,
-        };
+        return transient(
+          `Gemini is overloaded on Google's side right now. Wait a moment and press Regenerate. (${detail})`,
+        );
       }
-      return { ok: false, error: `Gemini error: ${detail}` };
+      return fatal(`Gemini error: ${detail}`);
     }
 
     if (data.promptFeedback?.blockReason) {
-      return {
-        ok: false,
-        error: `Gemini blocked the request (${data.promptFeedback.blockReason}).`,
-      };
+      return fatal(`Gemini blocked the request (${data.promptFeedback.blockReason}).`);
     }
 
     const candidate = data.candidates?.[0];
@@ -177,18 +218,17 @@ export async function generateJson(opts: GenerateOptions): Promise<GeminiResult>
       // MAX_TOKENS here usually means the model's reasoning consumed the output
       // budget before it emitted the JSON body.
       const reason = candidate?.finishReason ?? "empty response";
-      return { ok: false, error: `Gemini returned no content (${reason}).` };
+      return fatal(`Gemini returned no content (${reason}).`);
     }
 
     return { ok: true, text, model };
   }
 
-  return {
-    ok: false,
-    error: lastTransientError
+  return transient(
+    lastTransientError
       ? `Gemini didn't respond in time — ${lastTransientError} Press Regenerate to retry.`
       : "Gemini didn't respond in time. Press Regenerate to retry.",
-  };
+  );
 }
 
 /**

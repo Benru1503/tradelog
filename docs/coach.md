@@ -107,7 +107,22 @@ crashing — same graceful-degradation rule as the market-data surfaces.
 - **Quotas are per-account.** Check yours at
   <https://aistudio.google.com/rate-limit>. A report is one request, and
   identical history reuses the cached report, so normal use is far below any
-  limit. A 429 surfaces as "rate limit reached — wait a minute".
+  limit. A 429 surfaces as "rate limit reached — wait a minute", and is
+  deliberately **not** retried — retrying a quota error makes it worse.
+- **503 "model is overloaded" is common and transient.** Google-side capacity,
+  unrelated to the key. The client retries up to 3 times (0.8s, 2s backoff),
+  then falls back to a second model — `gemini-flash-lite-latest` by default,
+  overridable with `GEMINI_FALLBACK_MODEL` — because a different model is a
+  different capacity pool. The fallback also rescues a retired pinned snapshot,
+  since a 404 moves down the chain instead of ending the call.
+- **The whole call is budgeted to 55s** with 25s attempts, so retries and the
+  fallback fit inside the hosting function limit. `/coach` sets
+  `maxDuration = 60`; without it Vercel kills the function at its 10s default
+  and a slow generation dies as an opaque platform error.
+- **Before a demo, generate a report and leave the trades alone.** Unchanged
+  history is a cache hit that never calls Gemini, so the demo path can't fail
+  on capacity. Editing or deleting a trade changes the fact sheet hash and
+  invalidates it — prune first, generate second.
 - **Google may use free-tier content to improve their products.** The paid
   tier does not. A coach report sends trade metrics and journal-note excerpts.
   For the graded demo this is moot when running against seeded demo data; be
