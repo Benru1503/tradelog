@@ -62,16 +62,27 @@ export async function GET(request: NextRequest) {
       null;
     const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null;
 
-    await prisma.user.upsert({
-      where: { id: user.id },
-      update: { email: user.email ?? "", displayName, avatarUrl },
-      create: {
-        id: user.id,
-        email: user.email ?? "",
-        displayName,
-        avatarUrl,
-      },
-    });
+    try {
+      await prisma.user.upsert({
+        where: { id: user.id },
+        update: { email: user.email ?? "", displayName, avatarUrl },
+        create: {
+          id: user.id,
+          email: user.email ?? "",
+          displayName,
+          avatarUrl,
+        },
+      });
+    } catch (err) {
+      // `users.email` is unique and there is no FK between auth.users and
+      // public.users, so an auth account deleted outside the app's Settings
+      // flow strands a row that collides with the next signup on that
+      // address. Open signup makes that reachable by strangers, and the
+      // uncaught version surfaces as the "Something broke" boundary on
+      // /dashboard. Fail back to /login with a message instead.
+      console.error("[auth/callback] user upsert failed", err);
+      return NextResponse.redirect(`${url.origin}/login?error=account_conflict`);
+    }
   }
 
   return response;

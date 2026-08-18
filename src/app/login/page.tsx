@@ -1,13 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 
+// The auth callback redirects here with ?error=<code> when sign-in fails.
+// Until now nothing read it, so a failed callback looked like a silent bounce
+// back to the login screen.
+const LOGIN_ERRORS: Record<string, string> = {
+  auth: "Sign-in didn't complete. Please try again.",
+  account_conflict:
+    "That email is still attached to an older account. Ask the site owner to release it, then try again.",
+};
+
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Read from window rather than useSearchParams: this page is statically
+  // prerendered, and useSearchParams would force it into client rendering.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (code) setError(LOGIN_ERRORS[code] ?? LOGIN_ERRORS.auth);
+  }, []);
 
   async function signInWithGoogle() {
     setError(null);
