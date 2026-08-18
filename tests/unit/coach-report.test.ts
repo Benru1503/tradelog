@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { buildCoachFacts } from "@/lib/coach/facts";
 import { hashFacts } from "@/lib/coach/report";
 import { coachReportSchema, GEMINI_RESPONSE_SCHEMA } from "@/lib/coach/schema";
