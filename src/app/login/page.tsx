@@ -12,6 +12,7 @@ const LOGIN_ERRORS: Record<string, string> = {
   auth: "Sign-in didn't complete. Please try again.",
   account_conflict:
     "That email is still attached to an older account. Ask the site owner to release it, then try again.",
+  provider: "TradeLog signs in with Google only. That account can't be used here.",
 };
 
 export default function LoginPage() {

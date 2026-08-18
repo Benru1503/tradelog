@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAllowedProvider, shouldEnforceProviderPolicy } from "@/lib/auth-policy";
 
 // /api/health must stay public — uptime probes don't carry a session, and a
 // redirect-to-login 200 defeats the whole point of a liveness check.
@@ -60,6 +61,20 @@ export async function updateSession(request: NextRequest) {
     getUserErr.message !== "Auth session missing!"
   ) {
     console.log(`[mw] ${pathname} user=${user?.email ?? "null"} err=${getUserErr.message}`);
+  }
+
+  // Google-only in production. See src/lib/auth-policy.ts for why this lives
+  // here and not in the Supabase dashboard. Bounce the session rather than
+  // just denying the page, so a self-registered account cannot linger.
+  if (user && !isPublic && shouldEnforceProviderPolicy() && !isAllowedProvider(user)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "?error=provider";
+    const denied = NextResponse.redirect(url);
+    for (const cookie of request.cookies.getAll()) {
+      if (cookie.name.startsWith("sb-")) denied.cookies.delete(cookie.name);
+    }
+    return denied;
   }
 
   if (!user && !isPublic) {
