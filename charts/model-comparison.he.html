@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>מחברת המחקר — AUC בבדיקה מול הטלת מטבע</title>
+    <style>
+      :root {
+        --page: #0d0d0d;
+        --surface: #1a1a19;
+        --panel: #232322;
+        --ink: #ffffff;
+        --muted: #c3c2b7;
+        --muted2: #898781;
+        --line: #2c2c2a;
+        --axis: #3a3a38;
+        --accent: #3987e5;
+        --accent-light: #7fb2f2;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--page);
+        font-family:
+          "Arial Hebrew",
+          "Heebo",
+          "Assistant",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        color: var(--ink);
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 32px;
+      }
+      .card {
+        width: 760px;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 30px 36px 24px;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.3),
+          0 20px 48px -16px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+        text-align: right;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--accent-light);
+        background: rgba(57, 135, 229, 0.14);
+        padding: 4px 10px 4px 8px;
+        border-radius: 100px;
+        margin-bottom: 10px;
+        font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      }
+      .kicker .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-light);
+        display: inline-block;
+      }
+      h1 {
+        font-size: 19px;
+        line-height: 1.35;
+        margin: 0 0 5px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      p.sub {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .headline {
+        display: flex;
+        align-items: baseline;
+        gap: 22px;
+        margin: 20px 0 22px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(57, 135, 229, 0.14), rgba(57, 135, 229, 0.03));
+        border: 1px solid rgba(57, 135, 229, 0.22);
+        border-radius: 12px;
+      }
+      .headline .num {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--accent-light);
+        font-variant-numeric: tabular-nums;
+        direction: ltr;
+      }
+      .headline .txt {
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.6;
+        max-width: 560px;
+      }
+      .headline .txt b {
+        color: var(--ink);
+      }
+
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        direction: ltr;
+      }
+      .cat-label {
+        font-size: 13.5px;
+        font-weight: 700;
+        fill: var(--ink);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+      }
+      .val-label {
+        font-size: 13px;
+        font-weight: 700;
+        fill: var(--accent-light);
+        font-variant-numeric: tabular-nums;
+      }
+      .gridline {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .baseline {
+        stroke: var(--axis);
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
+      }
+      .baseline-label {
+        font-size: 10.5px;
+        fill: var(--muted2);
+        font-weight: 600;
+        font-family: "Arial Hebrew", "Heebo", "Assistant", sans-serif;
+      }
+
+      footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 10.5px;
+        color: var(--muted2);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="kicker"><span class="dot"></span>Notebook &middot; השוואת מודלים</div>
+      <h1>AUC בבדיקה מול הטלת מטבע</h1>
+      <p class="sub">
+        אותה חלוקה כרונולוגית נטולת דליפה &middot; מאפייני הייצור (XGB-lite) מול נתוני
+        on-chain/מאקרו נוספים (XGB-full) מול LSTM
+      </p>
+
+      <div class="headline">
+        <div class="num">0.012</div>
+        <div class="txt">
+          <b>הפער הגדול ביותר מהטלת מטבע</b> — ה-0.512 של XGB-lite הוא החזק מבין שלושת המודלים,
+          ועדיין בקושי מעל 0.500.
+        </div>
+      </div>
+
+      <svg id="chart" viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg"></svg>
+      <footer>מקור: טבלת השוואת המודלים ב-ml/tradelog_prediction.ipynb</footer>
+    </div>
+
+    <script>
+      (function () {
+        var W = 760,
+          H = 380;
+        var marginTop = 20,
+          marginBottom = 60,
+          marginLeft = 20,
+          marginRight = 20;
+        var plotX0 = marginLeft,
+          plotX1 = W - marginRight;
+        var plotY0 = marginTop,
+          plotY1 = H - marginBottom;
+        var plotW = plotX1 - plotX0,
+          plotH = plotY1 - plotY0;
+
+        var yMin = 0.48,
+          yMax = 0.52,
+          baseline = 0.5;
+        function yFor(v) {
+          return plotY0 + ((yMax - v) / (yMax - yMin)) * plotH;
+        }
+        var baseY = yFor(baseline);
+
+        var bars = [
+          { label: "XGB-lite", value: 0.512, disp: "0.512" },
+          { label: "XGB-full", value: 0.494, disp: "0.494" },
+          { label: "LSTM", value: 0.5, disp: "0.500" },
+        ];
+
+        var barW = 24;
+        var svg = document.getElementById("chart");
+        var ns = "http://www.w3.org/2000/svg";
+        function el(tag, attrs) {
+          var e = document.createElementNS(ns, tag);
+          for (var k in attrs) e.setAttribute(k, attrs[k]);
+          return e;
+        }
+
+        var defs = el("defs", {});
+        var grad = el("linearGradient", { id: "gradAuc", x1: "0", y1: "0", x2: "0", y2: "1" });
+        grad.appendChild(el("stop", { offset: "0%", "stop-color": "#7fb2f2" }));
+        grad.appendChild(el("stop", { offset: "100%", "stop-color": "#3987e5" }));
+        defs.appendChild(grad);
+        svg.appendChild(defs);
+
+        [0.5, 0.51, 0.49].forEach(function (v) {
+          var y = yFor(v);
+          svg.appendChild(el("line", { x1: plotX0, x2: plotX1, y1: y, y2: y, class: "gridline" }));
+        });
+
+        svg.appendChild(
+          el("line", { x1: plotX0, x2: plotX1, y1: baseY, y2: baseY, class: "baseline" }),
+        );
+        var bt = el("text", {
+          x: plotX1,
+          y: baseY - 8,
+          class: "baseline-label",
+          "text-anchor": "end",
+        });
+        bt.textContent = "0.500 — הטלת מטבע";
+        svg.appendChild(bt);
+
+        function roundedBarPath(x, y, w, h, r, corner) {
+          r = Math.min(r, h, w / 2);
+          if (h <= 0) return "";
+          if (corner === "top") {
+            return (
+              "M" +
+              x +
+              "," +
+              (y + h) +
+              " L" +
+              x +
+              "," +
+              (y + r) +
+              " Q" +
+              x +
+              "," +
+              y +
+              " " +
+              (x + r) +
+              "," +
+              y +
+              " L" +
+              (x + w - r) +
+              "," +
+              y +
+              " Q" +
+              (x + w) +
+              "," +
+              y +
+              " " +
+              (x + w) +
+              "," +
+              (y + r) +
+              " L" +
+              (x + w) +
+              "," +
+              (y + h) +
+              " Z"
+            );
+          }
+          return (
+            "M" +
+            x +
+            "," +
+            y +
+            " L" +
+            (x + w) +
+            "," +
+            y +
+            " L" +
+            (x + w) +
+            "," +
+            (y + h - r) +
+            " Q" +
+            (x + w) +
+            "," +
+            (y + h) +
+            " " +
+            (x + w - r) +
+            "," +
+            (y + h) +
+            " L" +
+            (x + r) +
+            "," +
+            (y + h) +
+            " Q" +
+            x +
+            "," +
+            (y + h) +
+            " " +
+            x +
+            "," +
+            (y + h - r) +
+            " Z"
+          );
+        }
+
+        var groupW = plotW / bars.length;
+        bars.forEach(function (b, i) {
+          var cx = plotX0 + groupW * (i + 0.5);
+          var raw = yFor(b.value);
+          var h = Math.max(Math.abs(baseY - raw), 3);
+          var corner = b.value >= baseline ? "top" : "bottom";
+          var y = b.value >= baseline ? Math.min(baseY - h, baseY) : baseY;
+          var path = roundedBarPath(cx - barW / 2, y, barW, h, 4, corner);
+          svg.appendChild(el("path", { d: path, fill: "url(#gradAuc)" }));
+          var labelY = b.value >= baseline ? y - 8 : y + h + 16;
+          var t = el("text", { x: cx, y: labelY, class: "val-label", "text-anchor": "middle" });
+          t.textContent = b.disp;
+          svg.appendChild(t);
+          var catLabel = el("text", {
+            x: cx,
+            y: plotY1 + 30,
+            class: "cat-label",
+            "text-anchor": "middle",
+          });
+          catLabel.textContent = b.label;
+          svg.appendChild(catLabel);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Predict — תוצאות ה-backtest בייצור: אסטרטגיה מול קנייה והחזקה</title>
+    <style>
+      :root {
+        --page: #0d0d0d;
+        --surface: #1a1a19;
+        --panel: #232322;
+        --ink: #ffffff;
+        --muted: #c3c2b7;
+        --muted2: #898781;
+        --line: #2c2c2a;
+        --axis: #3a3a38;
+        --accent: #3987e5;
+        --accent-light: #7fb2f2;
+        --accent2: #d95926;
+        --accent2-light: #f0985f;
+        --good-wash: rgba(46, 196, 120, 0.09);
+        --bad-wash: rgba(235, 100, 70, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--page);
+        font-family:
+          "Arial Hebrew",
+          "Heebo",
+          "Assistant",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        color: var(--ink);
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 32px;
+      }
+      .card {
+        width: 920px;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 30px 36px 24px;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.3),
+          0 20px 48px -16px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+        text-align: right;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--accent-light);
+        background: rgba(57, 135, 229, 0.14);
+        padding: 4px 10px 4px 8px;
+        border-radius: 100px;
+        margin-bottom: 10px;
+        font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      }
+      .kicker .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-light);
+        display: inline-block;
+      }
+      h1 {
+        font-size: 19px;
+        line-height: 1.35;
+        margin: 0 0 5px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      p.sub {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .headline {
+        display: flex;
+        align-items: baseline;
+        gap: 22px;
+        margin: 20px 0 22px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, rgba(57, 135, 229, 0.14), rgba(57, 135, 229, 0.03));
+        border: 1px solid rgba(57, 135, 229, 0.22);
+        border-radius: 12px;
+      }
+      .headline .num {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--accent-light);
+        font-variant-numeric: tabular-nums;
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        direction: ltr;
+      }
+      .headline .txt {
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.6;
+        max-width: 620px;
+      }
+      .headline .txt b {
+        color: var(--ink);
+      }
+
+      .legend {
+        display: flex;
+        gap: 10px;
+        margin: 0 0 14px;
+        justify-content: flex-end;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 5px 12px 5px 8px;
+        border-radius: 100px;
+        background: var(--panel);
+        color: var(--ink);
+      }
+      .legend i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .swatch-strategy {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(57, 135, 229, 0.22);
+      }
+      .swatch-hold {
+        background: var(--accent2);
+        box-shadow: 0 0 0 3px rgba(217, 89, 38, 0.22);
+      }
+
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        direction: ltr;
+      }
+      .cat-label {
+        font-size: 13.5px;
+        font-weight: 700;
+        fill: var(--ink);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+      }
+      .val-label {
+        font-size: 13px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .val-strategy {
+        fill: var(--accent-light);
+      }
+      .val-hold {
+        fill: var(--accent2-light);
+      }
+      .gridline {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .baseline {
+        stroke: var(--axis);
+        stroke-width: 1.5;
+      }
+      .axis-label {
+        font-size: 10.5px;
+        fill: var(--muted2);
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+
+      footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 10.5px;
+        color: var(--muted2);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="kicker"><span class="dot"></span>Predict &middot; Backtest</div>
+      <h1>אסטרטגיה מול קנייה והחזקה, לפי נכס</h1>
+      <p class="sub">
+        לונג כאשר p(up) ≥ 0.55, אחרת מחוץ לשוק, עמלה של 10 נקודות בסיס בכל שינוי פוזיציה &middot;
+        חלון בדיקה 10/2025 → 07/2026
+      </p>
+
+      <div class="headline">
+        <div class="num">+9.7%</div>
+        <div class="txt">
+          <b>תשואת אסטרטגיית BTC</b> לעומת −46.1% קנייה והחזקה — המודל ישב מחוץ לרוב צניחה של 46%,
+          לא תחזית כיוונית.
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="swatch-hold"></i>קנייה והחזקה</span>
+        <span><i class="swatch-strategy"></i>אסטרטגיה</span>
+      </div>
+
+      <svg id="chart" viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg"></svg>
+      <footer>
+        מקור: src/lib/ml/artifacts/meta.json (backtest.perAsset) &middot; סף 0.55 &middot; עמלה 10
+        נקודות בסיס
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var W = 920,
+          H = 420;
+        var marginTop = 16,
+          marginBottom = 46,
+          marginLeft = 58,
+          marginRight = 20;
+        var plotX0 = marginLeft,
+          plotX1 = W - marginRight;
+        var plotY0 = marginTop,
+          plotY1 = H - marginBottom;
+        var plotW = plotX1 - plotX0,
+          plotH = plotY1 - plotY0;
+
+        var yMin = -50,
+          yMax = 35;
+        function yFor(v) {
+          return plotY0 + ((yMax - v) / (yMax - yMin)) * plotH;
+        }
+        var zeroY = yFor(0);
+
+        var groups = [
+          { label: "BTC", strategy: 9.65, hold: -46.14, dispStrategy: "+9.7%", dispHold: "−46.1%" },
+          { label: "AAPL", strategy: -5.8, hold: 30.46, dispStrategy: "−5.8%", dispHold: "+30.5%" },
+          { label: "SPY", strategy: -0.07, hold: 12.31, dispStrategy: "−0.1%", dispHold: "+12.3%" },
+        ];
+
+        var barW = 24,
+          pairGap = 4;
+        var svg = document.getElementById("chart");
+        var ns = "http://www.w3.org/2000/svg";
+
+        function el(tag, attrs) {
+          var e = document.createElementNS(ns, tag);
+          for (var k in attrs) e.setAttribute(k, attrs[k]);
+          return e;
+        }
+
+        var defs = el("defs", {});
+        var gradStrategy = el("linearGradient", {
+          id: "gradStrategy",
+          x1: "0",
+          y1: "0",
+          x2: "0",
+          y2: "1",
+        });
+        gradStrategy.appendChild(el("stop", { offset: "0%", "stop-color": "#7fb2f2" }));
+        gradStrategy.appendChild(el("stop", { offset: "100%", "stop-color": "#3987e5" }));
+        var gradHold = el("linearGradient", { id: "gradHold", x1: "0", y1: "0", x2: "0", y2: "1" });
+        gradHold.appendChild(el("stop", { offset: "0%", "stop-color": "#f0985f" }));
+        gradHold.appendChild(el("stop", { offset: "100%", "stop-color": "#d95926" }));
+        defs.appendChild(gradStrategy);
+        defs.appendChild(gradHold);
+        svg.appendChild(defs);
+
+        svg.appendChild(
+          el("rect", {
+            x: plotX0,
+            y: plotY0,
+            width: plotW,
+            height: zeroY - plotY0,
+            fill: "var(--good-wash)",
+          }),
+        );
+        svg.appendChild(
+          el("rect", {
+            x: plotX0,
+            y: zeroY,
+            width: plotW,
+            height: plotY1 - zeroY,
+            fill: "var(--bad-wash)",
+          }),
+        );
+
+        [25, 0, -25].forEach(function (v) {
+          var y = yFor(v);
+          svg.appendChild(
+            el("line", {
+              x1: plotX0,
+              x2: plotX1,
+              y1: y,
+              y2: y,
+              class: v === 0 ? "baseline" : "gridline",
+            }),
+          );
+          var t = el("text", {
+            x: plotX0 - 8,
+            y: y + 4,
+            class: "axis-label",
+            "text-anchor": "end",
+          });
+          t.textContent = (v > 0 ? "+" : "") + v + "%";
+          svg.appendChild(t);
+        });
+
+        function roundedBarPath(x, y, w, h, r, corner) {
+          r = Math.min(r, h, w / 2);
+          if (h <= 0) return "";
+          if (corner === "top") {
+            return (
+              "M" +
+              x +
+              "," +
+              (y + h) +
+              " L" +
+              x +
+              "," +
+              (y + r) +
+              " Q" +
+              x +
+              "," +
+              y +
+              " " +
+              (x + r) +
+              "," +
+              y +
+              " L" +
+              (x + w - r) +
+              "," +
+              y +
+              " Q" +
+              (x + w) +
+              "," +
+              y +
+              " " +
+              (x + w) +
+              "," +
+              (y + r) +
+              " L" +
+              (x + w) +
+              "," +
+              (y + h) +
+              " Z"
+            );
+          }
+          return (
+            "M" +
+            x +
+            "," +
+            y +
+            " L" +
+            (x + w) +
+            "," +
+            y +
+            " L" +
+            (x + w) +
+            "," +
+            (y + h - r) +
+            " Q" +
+            (x + w) +
+            "," +
+            (y + h) +
+            " " +
+            (x + w - r) +
+            "," +
+            (y + h) +
+            " L" +
+            (x + r) +
+            "," +
+            (y + h) +
+            " Q" +
+            x +
+            "," +
+            (y + h) +
+            " " +
+            x +
+            "," +
+            (y + h - r) +
+            " Z"
+          );
+        }
+
+        function drawBar(cx, value, fill, labelClass, dispVal) {
+          var raw = yFor(value);
+          var h = Math.max(Math.abs(zeroY - raw), 3);
+          var corner = value >= 0 ? "top" : "bottom";
+          var y = value >= 0 ? Math.min(zeroY - h, zeroY) : zeroY;
+          var path = roundedBarPath(cx - barW / 2, y, barW, h, 4, corner);
+          svg.appendChild(el("path", { d: path, fill: fill }));
+          var labelY = value >= 0 ? y - 9 : y + h + 17;
+          var t = el("text", {
+            x: cx,
+            y: labelY,
+            class: "val-label " + labelClass,
+            "text-anchor": "middle",
+          });
+          t.textContent = dispVal;
+          svg.appendChild(t);
+        }
+
+        var groupW = plotW / groups.length;
+        groups.forEach(function (g, i) {
+          var groupCx = plotX0 + groupW * (i + 0.5);
+          var stratCx = groupCx - (barW / 2 + pairGap / 2);
+          var holdCx = groupCx + (barW / 2 + pairGap / 2);
+          drawBar(stratCx, g.strategy, "url(#gradStrategy)", "val-strategy", g.dispStrategy);
+          drawBar(holdCx, g.hold, "url(#gradHold)", "val-hold", g.dispHold);
+          var catLabel = el("text", {
+            x: groupCx,
+            y: plotY1 + 30,
+            class: "cat-label",
+            "text-anchor": "middle",
+          });
+          catLabel.textContent = g.label;
+          svg.appendChild(catLabel);
+        });
+      })();
+    </script>
+  </body>
+</html>
