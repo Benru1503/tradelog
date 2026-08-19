@@ -1,0 +1,5 @@
+# TradeLog is a Node.js/TypeScript app — Python is only used for the ML
+# training pipeline and research notebook under ml/. This file exists at the
+# repo root for discoverability; the actual dependency list lives in
+# ml/requirements.txt (the single source of truth) and is pulled in below.
+-r ml/requirements.txt
