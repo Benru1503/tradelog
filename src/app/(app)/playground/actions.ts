@@ -76,9 +76,9 @@ export async function runWhatIf(formData: FormData): Promise<WhatIfResponse> {
   });
   if (!candles || candles.length === 0) {
     const tip =
-      parsed.data.assetType === "STOCK" || parsed.data.assetType === "FOREX"
-        ? "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range."
-        : "Provider didn't return any history for this range. CoinGecko's free tier caps daily history at ~1 year.";
+      parsed.data.assetType === "CRYPTO"
+        ? "Yahoo Finance didn't return historical data for this coin, and CoinGecko's free tier caps daily history at ~1 year — try a shorter range."
+        : "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range.";
     return { ok: false, error: `Historical data unavailable. ${tip}` };
   }
 
@@ -183,9 +183,9 @@ export async function runDca(formData: FormData): Promise<DcaResponse> {
   });
   if (!candles || candles.length === 0) {
     const tip =
-      parsed.data.assetType === "STOCK" || parsed.data.assetType === "FOREX"
-        ? "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range."
-        : "Provider didn't return any history for this range. CoinGecko's free tier caps daily history at ~1 year.";
+      parsed.data.assetType === "CRYPTO"
+        ? "Yahoo Finance didn't return historical data for this coin, and CoinGecko's free tier caps daily history at ~1 year — try a shorter range."
+        : "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range.";
     return { ok: false, error: `Historical data unavailable. ${tip}` };
   }
 

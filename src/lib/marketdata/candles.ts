@@ -28,7 +28,12 @@ export async function getCandles(
   range: CandleRange,
 ): Promise<Candle[] | null> {
   if (symbol.assetType === "CRYPTO") {
-    // CoinGecko's coin id ("bitcoin"), not the display ticker.
+    // Yahoo's "<TICKER>-USD" tracks years of history for major coins (BTC
+    // back to 2014) versus CoinGecko's free-tier ~365-day cap. Yahoo doesn't
+    // track every long-tail coin CoinGecko does, so fall back to CoinGecko
+    // (coin id, not the display ticker) when Yahoo has nothing.
+    const yahoo = await yahooProvider.getCandles(symbol.symbol, symbol.assetType, range);
+    if (yahoo) return yahoo;
     return coingeckoProvider.getCandles(symbol.exchange ?? symbol.symbol, range);
   }
   // Yahoo, not Finnhub: Finnhub's free tier doesn't serve historical

@@ -36,6 +36,18 @@ function yahooForexSymbol(symbol: string): string {
   return `${letters}=X`;
 }
 
+// "BTC" -> Yahoo's "BTC-USD". Covers the coins Yahoo tracks (majors); the
+// caller falls back to CoinGecko for anything this comes back empty for.
+function yahooCryptoSymbol(symbol: string): string {
+  return `${symbol.toUpperCase()}-USD`;
+}
+
+function toYahooSymbol(symbol: string, assetType: AssetType): string {
+  if (assetType === "FOREX") return yahooForexSymbol(symbol);
+  if (assetType === "CRYPTO") return yahooCryptoSymbol(symbol);
+  return symbol;
+}
+
 interface YahooChartResponse {
   chart?: {
     result?: Array<{
@@ -61,7 +73,7 @@ export const yahooProvider = {
     assetType: AssetType,
     range: { from: Date; to: Date },
   ): Promise<Candle[] | null> {
-    const yahooSymbol = assetType === "FOREX" ? yahooForexSymbol(symbol) : symbol;
+    const yahooSymbol = toYahooSymbol(symbol, assetType);
     const url = new URL(`${YAHOO_BASE}/${encodeURIComponent(yahooSymbol)}`);
     url.searchParams.set("period1", String(Math.floor(range.from.getTime() / 1000)));
     url.searchParams.set("period2", String(Math.floor(range.to.getTime() / 1000)));
@@ -105,7 +117,7 @@ export const yahooProvider = {
   // additionally truncated to 1984 where `period1=0` correctly reaches 1985.
   // `interval=1mo` keeps the payload small; we only need the first timestamp.
   async getEarliestDate(symbol: string, assetType: AssetType): Promise<string | null> {
-    const yahooSymbol = assetType === "FOREX" ? yahooForexSymbol(symbol) : symbol;
+    const yahooSymbol = toYahooSymbol(symbol, assetType);
     const url = new URL(`${YAHOO_BASE}/${encodeURIComponent(yahooSymbol)}`);
     url.searchParams.set("period1", "0");
     url.searchParams.set("period2", String(Math.floor(Date.now() / 1000)));

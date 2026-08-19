@@ -35,8 +35,9 @@ export function DcaPanel() {
   const [fromDate, setFromDate] = useState(defaultFromDate());
   const [toDate, setToDate] = useState(todayISO());
   // Earliest date this symbol has history for (null = unrestricted, e.g.
-  // crypto or before a ticker's been picked). Caps the date-picker inputs so
-  // users can't pick, say, 1800 for a stock that IPO'd decades later.
+  // before a ticker's been picked, or a long-tail coin Yahoo doesn't track).
+  // Caps the date-picker inputs so users can't pick, say, 1800 for a stock
+  // that IPO'd decades later.
   const [minDate, setMinDate] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -49,10 +50,6 @@ export function DcaPanel() {
   }
 
   async function handleTickerSelect(hit: { symbol: string; assetType: AssetType }) {
-    if (hit.assetType === "CRYPTO") {
-      setMinDate(null);
-      return;
-    }
     try {
       const params = new URLSearchParams({ symbol: hit.symbol, assetType: hit.assetType });
       const res = await fetch(`/api/tickers/first-trade-date?${params.toString()}`);

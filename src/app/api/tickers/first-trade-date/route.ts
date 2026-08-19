@@ -7,9 +7,10 @@ import { rateLimit } from "@/lib/rate-limit";
 // GET /api/tickers/first-trade-date?symbol=AAPL&assetType=STOCK
 // Earliest daily bar available for this symbol, so the Playground date
 // pickers can be capped to when the asset actually started trading instead
-// of letting a user pick, say, 1800. Not answerable for crypto on free-tier
-// providers (CoinGecko caps free history at ~1 year) — those return null and
-// the caller leaves the picker unrestricted.
+// of letting a user pick, say, 1800. Crypto goes through Yahoo's
+// "<TICKER>-USD" too (years of history for majors); a long-tail coin Yahoo
+// doesn't track just returns null and the caller leaves the picker
+// unrestricted, same as any other lookup failure.
 const LOOKUPS_PER_MINUTE = 30;
 
 export async function GET(req: Request) {
@@ -32,10 +33,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "Invalid query" }, { status: 400 });
   }
   const { symbol, assetType } = parsed.data;
-
-  if (assetType === "CRYPTO") {
-    return NextResponse.json({ ok: true, firstTradeDate: null });
-  }
 
   const firstTradeDate = await yahooProvider.getEarliestDate(symbol, assetType);
   return NextResponse.json({ ok: true, firstTradeDate });
