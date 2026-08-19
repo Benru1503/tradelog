@@ -93,9 +93,15 @@ export const coingeckoProvider = {
   },
 };
 
-// CoinGecko's /ohlc only accepts these specific `days` values.
-function msToCgDays(ms: number): number | "max" {
+// CoinGecko's /ohlc only accepts these specific `days` values. `"max"` isn't
+// usable here — the free/demo tier (all this app ever authenticates as,
+// even with COINGECKO_DEMO_API_KEY set) 401s on it with "Public API users
+// are limited to querying historical data within the past 365 days," so a
+// request just over the 365 boundary — e.g. the Playground's default
+// "1 year ago" range plus the ±2-day pad callers add — would silently come
+// back as unavailable instead of the almost-full year CoinGecko will serve.
+function msToCgDays(ms: number): number {
   const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
   for (const d of [1, 7, 14, 30, 90, 180, 365]) if (days <= d) return d;
-  return "max";
+  return 365;
 }
