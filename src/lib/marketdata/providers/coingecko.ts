@@ -83,6 +83,20 @@ export const coingeckoProvider = {
     if (!Array.isArray(data) || data.length === 0) return null;
     const fromMs = range.from.getTime();
     const toMs = range.to.getTime();
+
+    // The free tier can only ever serve ~365 days back, so `data` may start
+    // well after the requested `from` (e.g. a 2022 buy date on a range
+    // capped to the last 365 days). Filtering below would silently keep
+    // whatever's left and let the caller treat the earliest available candle
+    // as if it were the requested date — a wrong, not just incomplete,
+    // simulation. If the earliest candle CoinGecko actually returned is
+    // materially later than what was asked for, treat the whole range as
+    // unavailable instead. Tolerance covers day-bucket snapping and weekend
+    // gaps, not "close enough" for a multi-year miss.
+    const GAP_TOLERANCE_MS = 10 * 24 * 60 * 60 * 1000;
+    const earliestReturnedMs = data[0][0];
+    if (fromMs < earliestReturnedMs - GAP_TOLERANCE_MS) return null;
+
     const candles: Candle[] = [];
     for (const row of data) {
       const [tMs, o, h, l, c] = row;

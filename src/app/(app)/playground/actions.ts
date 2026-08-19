@@ -78,7 +78,7 @@ export async function runWhatIf(formData: FormData): Promise<WhatIfResponse> {
     const tip =
       parsed.data.assetType === "STOCK" || parsed.data.assetType === "FOREX"
         ? "Yahoo Finance didn't return historical data for this symbol — check the ticker or try a different date range."
-        : "Provider didn't return any history for this range.";
+        : "Provider didn't return any history for this range. CoinGecko's free tier caps daily history at ~1 year.";
     return { ok: false, error: `Historical data unavailable. ${tip}` };
   }
 
